@@ -18,6 +18,7 @@ import com.netto.client.provider.ServiceProvider;
 import com.netto.context.ServiceRequest;
 import com.netto.context.ServiceResponse;
 import com.netto.filter.InvokeMethodFilter;
+import com.netto.util.Constants;
 
 public class RpcTcpClient extends AbstactRpcClient {
 	private static Logger logger = Logger.getLogger(RpcTcpClient.class);
@@ -50,6 +51,7 @@ public class RpcTcpClient extends AbstactRpcClient {
 			OutputStream os = socket.getOutputStream();
 			OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
 			osw.write(gson.toJson(req));
+			osw.write(Constants.PROTOCOL_REQUEST_DELIMITER);
 			osw.flush();
 
 			InputStream is = socket.getInputStream();

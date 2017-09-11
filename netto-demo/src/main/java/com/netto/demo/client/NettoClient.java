@@ -21,22 +21,22 @@ public class NettoClient {
 	private static ServiceRouterFactory routerFactory;
 
 	public static void main(String[] args) throws Exception {
-		local_tcp();
+	    nginx_tcp();
 		CountDownLatch latch = new CountDownLatch(1);
 		latch.await();
 	}
 
 	public static void nginx_http_tcp() throws Exception {
 		ServiceAddressGroup serverGroup = new ServiceAddressGroup();
-		serverGroup.setRegistry("http://192.168.150.150:8080/");
-		serverGroup.setServiceApp("netto-demo");
+		serverGroup.setRegistry("http://127.0.0.1:8330/api/");
+		serverGroup.setServiceApp("myservice");
 		serverGroup.setServiceGroup("*");
 
 		routerFactory = new ServiceRouterFactory();
 		routerFactory.setServerGroup(serverGroup);
 
 		ReferenceBean refer = new ReferenceBean();
-		refer.setServiceUri("netto-demo/helloService");
+		refer.setServiceUri("myservice/helloService");
 		refer.setRouterFactory(routerFactory);
 		refer.setInterfaceClazz(HelloService.class);
 		refer.setTimeout(20 * 1000);
@@ -67,15 +67,15 @@ public class NettoClient {
 
 	public static void nginx_tcp() throws Exception {
 		ServiceAddressGroup serverGroup = new ServiceAddressGroup();
-		serverGroup.setRegistry("http://192.168.150.150:8080/");
-		serverGroup.setServiceApp("netto-demo");
+		serverGroup.setRegistry("http://127.0.0.1:8330/api/");
+		serverGroup.setServiceApp("myservice");
 		serverGroup.setServiceGroup("*");
 
 		routerFactory = new ServiceRouterFactory();
 		routerFactory.setServerGroup(serverGroup);
 
 		ReferenceBean refer = new ReferenceBean();
-		refer.setServiceUri("netto-demo/helloService");
+		refer.setServiceUri("myservice/helloService");
 		refer.setRouterFactory(routerFactory);
 		refer.setInterfaceClazz(HelloService.class);
 		refer.setTimeout(20 * 1000);

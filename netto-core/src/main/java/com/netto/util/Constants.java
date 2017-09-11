@@ -1,0 +1,13 @@
+package com.netto.util;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+
+public class Constants {
+
+    public static String PROTOCOL_REQUEST_DELIMITER = "\r\n";
+    
+    public static ByteBuf[] delimiterAsByteBufArray(){
+        return new ByteBuf[]{ Unpooled.wrappedBuffer(Constants.PROTOCOL_REQUEST_DELIMITER.getBytes())};
+    }
+}

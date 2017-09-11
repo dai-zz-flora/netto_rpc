@@ -1,5 +1,6 @@
 package com.netto.client;
 
+import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import com.netto.client.provider.ServiceProvider;
 import com.netto.context.ServiceRequest;
 import com.netto.context.ServiceResponse;
 import com.netto.filter.InvokeMethodFilter;
+import com.netto.util.Constants;
 
 public class RpcHttpClient extends AbstactRpcClient {
 	private HttpConnectPool pool;
@@ -53,7 +55,10 @@ public class RpcHttpClient extends AbstactRpcClient {
 				post.addHeader("$router", RpcContext.getRouterContext());
 			}
 			// body
-			StringEntity se = new StringEntity(gson.toJson(req), ContentType.APPLICATION_JSON);
+		    StringWriter writer = new StringWriter();
+		    gson.toJson(req,writer);
+		    writer.append(Constants.PROTOCOL_REQUEST_DELIMITER);
+			StringEntity se = new StringEntity(writer.toString(), ContentType.APPLICATION_JSON);
 			post.setEntity(se);
 
 			HttpResponse response = httpClient.execute(post);
