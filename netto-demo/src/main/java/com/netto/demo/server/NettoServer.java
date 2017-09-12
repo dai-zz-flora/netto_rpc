@@ -12,6 +12,8 @@ public class NettoServer {
         Map<String, Object> refBeans = new HashMap<String, Object>();
         refBeans.put("helloService", new HelloServiceImpl());
         NettyServer server = new NettyServer(9229);
+        server.setMaxWaitingQueueSize(2);
+        server.setNumOfHandlerWorker(1);
         server.setRefBeans(refBeans);
         server.afterPropertiesSet();
 

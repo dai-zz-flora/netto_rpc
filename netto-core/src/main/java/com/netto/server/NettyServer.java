@@ -3,6 +3,8 @@ package com.netto.server;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeansException;
@@ -10,11 +12,14 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+
 import com.netto.filter.InvokeMethodFilter;
 import com.netto.server.bean.NettoServiceBean;
 import com.netto.server.bean.ServiceBean;
-
+import com.netto.server.handler.AsynchronousChannelHandler;
+import com.netto.server.handler.NettoServiceChannelHandler;
 import com.netto.server.handler.NettyServerJsonHandler;
+import com.netto.server.handler.SynchronousChannelHandler;
 import com.netto.util.Constants;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -43,7 +48,21 @@ public class NettyServer implements InitializingBean , ApplicationContextAware {
     private Map<String, Object> refBeans;
     private Map<String, NettoServiceBean> serviceBeans;
     
-	public int getMaxRequestSize() {
+    private int numOfHandlerWorker = 256;
+    
+    public void setNumOfHandlerWorker(int numOfHandlerWorker) {
+        this.numOfHandlerWorker = numOfHandlerWorker;
+    }
+
+    private int maxWaitingQueueSize = Integer.MAX_VALUE;
+    
+
+
+    public void setMaxWaitingQueueSize(int maxWaitingQueueSize) {
+        this.maxWaitingQueueSize = maxWaitingQueueSize;
+    }
+
+    public int getMaxRequestSize() {
         return maxRequestSize;
     }
 
@@ -100,8 +119,15 @@ public class NettyServer implements InitializingBean , ApplicationContextAware {
 	}
 
 	private void run() throws Exception {
-		EventLoopGroup bossGroup = new NioEventLoopGroup(1); // (1)
-		EventLoopGroup workerGroup = new NioEventLoopGroup(numWorkerThreads);
+	    
+        ExecutorService boss = Executors.newSingleThreadExecutor(new NamedThreadFactory("NettyServerBoss", true));
+        ExecutorService worker = Executors.newFixedThreadPool(numWorkerThreads,new NamedThreadFactory("NettyServerWorker", true));
+        
+		EventLoopGroup bossGroup = new NioEventLoopGroup(1,boss); // (1)
+		EventLoopGroup workerGroup = new NioEventLoopGroup(numWorkerThreads,worker);
+		
+		NettoServiceChannelHandler handler = new AsynchronousChannelHandler(serviceBeans, filters,this.numOfHandlerWorker,this.maxWaitingQueueSize);
+		
 		try {
 			ServerBootstrap b = new ServerBootstrap(); // (2)
 			b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class) // (3)
@@ -113,7 +139,7 @@ public class NettyServer implements InitializingBean , ApplicationContextAware {
                             p.addLast("framer",
                                     new DelimiterBasedFrameDecoder(maxRequestSize, Constants.delimiterAsByteBufArray()));
                             p.addLast("decoder",new ByteArrayDecoder());                            
-							p.addLast("handler",new NettyServerJsonHandler(serviceBeans, filters));
+							p.addLast("handler",new NettyServerJsonHandler(handler));
 //							p.addLast("handler",new NettyServerJsonHandler(serviceBeans, filters));
 						}
 					});
