@@ -52,6 +52,7 @@ public class RpcTcpClient extends AbstactRpcClient {
 			OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
 			osw.write(gson.toJson(req));
 			osw.write(Constants.PROTOCOL_REQUEST_DELIMITER);
+		
 			osw.flush();
 
 			InputStream is = socket.getInputStream();

@@ -24,6 +24,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.bytes.ByteArrayDecoder;
 
 public class NettyServer implements InitializingBean {
 	private static Logger logger = Logger.getLogger(NettyServer.class);
@@ -82,7 +83,8 @@ public class NettyServer implements InitializingBean {
 
 							ChannelPipeline p = ch.pipeline();
                             p.addLast("framer",
-                                    new DelimiterBasedFrameDecoder(maxRequestSize, Constants.delimiterAsByteBufArray()));							
+                                    new DelimiterBasedFrameDecoder(maxRequestSize, Constants.delimiterAsByteBufArray()));
+                            p.addLast("decoder",new ByteArrayDecoder());                            
 							p.addLast("handler",new NettyServerJsonHandler(serviceBeans, filters));
 //							p.addLast("handler",new NettyServerJsonHandler(serviceBeans, filters));
 						}

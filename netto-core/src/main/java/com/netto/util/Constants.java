@@ -8,6 +8,11 @@ public class Constants {
     public static String PROTOCOL_REQUEST_DELIMITER = "\r\n";
     
     public static ByteBuf[] delimiterAsByteBufArray(){
-        return new ByteBuf[]{ Unpooled.wrappedBuffer(Constants.PROTOCOL_REQUEST_DELIMITER.getBytes())};
+        return new ByteBuf[]{
+                Unpooled.wrappedBuffer(new byte[] { '\r', '\n' }),
+                Unpooled.wrappedBuffer(new byte[] { '\n' }),
+                
+                
+        };
     }
 }

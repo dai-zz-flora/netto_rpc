@@ -1,5 +1,6 @@
 package com.netto.server.handler;
 
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
@@ -29,42 +30,6 @@ public class NettyServerJsonHandler extends SimpleChannelInboundHandler<byte[]> 
 		this.filters = filters;
 	}
 
-	@Override
-	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-		if (msg instanceof ByteBuf) {
-			ByteBuf buf = (ByteBuf) msg;
-			byte[] req = new byte[buf.readableBytes()];
-			buf.readBytes(req);
-			String body = new String(req, "UTF-8");
-			ServiceRequest reqObj = gson.fromJson(body, ServiceRequest.class);
-			ServiceResponse resObj = new ServiceResponse();
-			if (this.serviceBeans.containsKey(reqObj.getServiceName())) {
-				ServiceProxy proxy = new ServiceProxy(reqObj, this.serviceBeans.get(reqObj.getServiceName()),
-						this.filters);
-
-				try {
-					resObj.setSuccess(true);
-					resObj.setBody(proxy.callService());
-				} catch (Throwable t) {
-					logger.error(t.getMessage(), t);
-					resObj.setSuccess(false);
-					resObj.setBody(t.getMessage());
-				}
-			} else {
-				resObj.setSuccess(false);
-				resObj.setBody("service " + reqObj.getServiceName() + " is not exsist!");
-			}
-			String response = gson.toJson(resObj) ;
-			ByteBuf encoded = ctx.alloc().buffer(4 * response.length()+8);
-			encoded.writeBytes(response.getBytes());
-			encoded.writeBytes(Constants.PROTOCOL_REQUEST_DELIMITER.getBytes());
-//			encoded.writeBytes(Constants.PROTOCOL_REQUEST_DELIMITER_BYTE_BUF);
-			ctx.write(encoded);
-			ctx.flush();
-			return;
-		}
-		super.channelRead(ctx, msg);
-	}
 
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
@@ -81,27 +46,37 @@ public class NettyServerJsonHandler extends SimpleChannelInboundHandler<byte[]> 
     protected void channelRead0(ChannelHandlerContext ctx, byte[] msg) throws Exception {
 
         String body = new String(msg, "UTF-8");
-        ServiceRequest reqObj = gson.fromJson(body, ServiceRequest.class);
-        ServiceResponse resObj = new ServiceResponse();
-        if (this.serviceBeans.containsKey(reqObj.getServiceName())) {
-            ServiceProxy proxy = new ServiceProxy(reqObj, this.serviceBeans.get(reqObj.getServiceName()),
-                    this.filters);
-
-            try {
-                resObj.setSuccess(true);
-                resObj.setBody(proxy.callService());
-            } catch (Throwable t) {
-                logger.error(t.getMessage(), t);
-                resObj.setSuccess(false);
-                resObj.setBody(t.getMessage());
-            }
-        } else {
-            resObj.setSuccess(false);
-            resObj.setBody("service " + reqObj.getServiceName() + " is not exsist!");
+        if(body.equals("")){
+            return ;
         }
-        String response = gson.toJson(resObj) + "\r\n";
+
+        ServiceResponse resObj = new ServiceResponse();
+        try{
+            ServiceRequest reqObj = gson.fromJson(body, ServiceRequest.class);
+            if (this.serviceBeans.containsKey(reqObj.getServiceName())) {
+                ServiceProxy proxy = new ServiceProxy(reqObj, this.serviceBeans.get(reqObj.getServiceName()),
+                        this.filters);
+    
+                try {
+                    resObj.setSuccess(true);
+                    resObj.setBody(proxy.callService());
+                } catch (Throwable t) {
+                    logger.error(t.getMessage(), t);
+                    resObj.setSuccess(false);
+                    resObj.setBody(t.getMessage());
+                }
+            } else {
+                resObj.setSuccess(false);
+                resObj.setBody("service " + reqObj.getServiceName() + " is not exsist!");
+            }
+        }
+        catch(Throwable t){
+            logger.error("error when process request "+body,t);
+        }
+        String response = gson.toJson(resObj);
         ByteBuf encoded = ctx.alloc().buffer(4 * response.length());
         encoded.writeBytes(response.getBytes());
+        encoded.writeCharSequence(Constants.PROTOCOL_REQUEST_DELIMITER, Charset.defaultCharset());
         ctx.write(encoded);
         ctx.flush();
         return;
