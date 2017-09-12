@@ -10,26 +10,30 @@ import com.google.gson.Gson;
 import com.netto.context.ServiceRequest;
 import com.netto.context.ServiceResponse;
 import com.netto.filter.InvokeMethodFilter;
+import com.netto.server.bean.NettoServiceBean;
+import com.netto.server.bean.ServiceBean;
 import com.netto.server.desc.impl.ServiceDescApiImpl;
 import com.netto.util.Constants;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+
 import io.netty.channel.SimpleChannelInboundHandler;
 
 public class NettyServerJsonHandler extends SimpleChannelInboundHandler<byte[]> {
 	private static Logger logger = Logger.getLogger(NettyServerJsonHandler.class);
 	private static Gson gson = new Gson();
-	private Map<String, Object> serviceBeans;
+	private Map<String, NettoServiceBean> serviceBeans;
 	private List<InvokeMethodFilter> filters;
 
-	public NettyServerJsonHandler(Map<String, Object> serviceBeans, List<InvokeMethodFilter> filters) {
-		this.serviceBeans = serviceBeans;
-		this.serviceBeans.put("$serviceDesc", new ServiceDescApiImpl(this.serviceBeans));
-		this.filters = filters;
+	public NettyServerJsonHandler(Map<String, NettoServiceBean> serviceBeans,  List<InvokeMethodFilter> filters) {
+        this.serviceBeans = serviceBeans;
+        ServiceBean bean = new ServiceBean();
+        bean.setRef("$serviceDesc");
+        NettoServiceBean serivceBean = new NettoServiceBean(bean, new ServiceDescApiImpl(this.serviceBeans));
+        this.serviceBeans.put("$serviceDesc", serivceBean);
+        this.filters = filters;
 	}
-
 
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {

@@ -1,13 +1,19 @@
 package com.netto.server;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import com.netto.filter.InvokeMethodFilter;
-import com.netto.server.handler.NettyServerHandler;
+import com.netto.server.bean.NettoServiceBean;
+import com.netto.server.bean.ServiceBean;
+
 import com.netto.server.handler.NettyServerJsonHandler;
 import com.netto.util.Constants;
 
@@ -23,17 +29,20 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
+
 import io.netty.handler.codec.bytes.ByteArrayDecoder;
 
-public class NettyServer implements InitializingBean {
+public class NettyServer implements InitializingBean , ApplicationContextAware {
 	private static Logger logger = Logger.getLogger(NettyServer.class);
 	private int port = 12345;
-	private Map<String, Object> serviceBeans;
+
 	private List<InvokeMethodFilter> filters;
 	private int numWorkerThreads = 16;
 	private int maxRequestSize = 1024*1024;
-
+    private ApplicationContext applicationContext;
+    private Map<String, Object> refBeans;
+    private Map<String, NettoServiceBean> serviceBeans;
+    
 	public int getMaxRequestSize() {
         return maxRequestSize;
     }
@@ -50,14 +59,12 @@ public class NettyServer implements InitializingBean {
         this.numWorkerThreads = numWorkerThreads;
     }
 
-    public NettyServer(int port, Map<String, Object> serviceBeans) {
+    public NettyServer(int port) {
 		this.port = port;
-		this.serviceBeans = serviceBeans;
+	
 	}
 
-	public Map<String, Object> getServiceBeans() {
-		return serviceBeans;
-	}
+
 
 	public List<InvokeMethodFilter> getFilters() {
 		return filters;
@@ -68,6 +75,27 @@ public class NettyServer implements InitializingBean {
 	}
 
 	public void afterPropertiesSet() throws Exception {
+	    this.serviceBeans = new HashMap<String, NettoServiceBean>();
+        if (this.refBeans == null) {
+            Map<String, ServiceBean> temps = this.applicationContext.getBeansOfType(ServiceBean.class);
+            for (String key : temps.keySet()) {
+                ServiceBean bean = temps.get(key);
+                NettoServiceBean factoryBean = new NettoServiceBean(bean,
+                        this.applicationContext.getBean(bean.getRef()));
+                this.serviceBeans.put(bean.getRef(), factoryBean);
+            }
+
+        } else {
+            for (String key : this.refBeans.keySet()) {
+                ServiceBean bean = new ServiceBean();
+                bean.setRef(key);
+                NettoServiceBean factoryBean = new NettoServiceBean(bean, this.refBeans.get(key));
+                this.serviceBeans.put(key, factoryBean);
+            }
+
+        }
+
+        
 		this.run();
 	}
 
@@ -103,5 +131,17 @@ public class NettyServer implements InitializingBean {
 			workerGroup.shutdownGracefully();
 		}
 	}
+
+
+    
+    
+    public void setRefBeans(Map<String, Object> refBeans) {
+               this.refBeans = refBeans;
+       }
+        
+           @Override
+           public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+               this.applicationContext = applicationContext;
+           }
 
 }
