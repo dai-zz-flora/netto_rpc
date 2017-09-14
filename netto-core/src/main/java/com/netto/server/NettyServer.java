@@ -56,6 +56,8 @@ public class NettyServer implements InitializingBean , ApplicationContextAware {
 
     private int maxWaitingQueueSize = Integer.MAX_VALUE;
     
+	public NettyServer() {
+	}
 
 
     public void setMaxWaitingQueueSize(int maxWaitingQueueSize) {
@@ -78,7 +80,8 @@ public class NettyServer implements InitializingBean , ApplicationContextAware {
         this.numWorkerThreads = numWorkerThreads;
     }
 
-    public NettyServer(int port) {
+
+	public NettyServer(int port) {
 		this.port = port;
 	
 	}

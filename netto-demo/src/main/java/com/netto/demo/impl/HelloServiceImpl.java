@@ -12,6 +12,9 @@ public class HelloServiceImpl implements HelloService {
 	public String sayHello(String name) {
 		return "hello \r\n " + name + "!";
 	}
+	
+	
+
 
 	public List<User> saveUsers(Map<String, List<User>> users) {
 //		try {
@@ -36,4 +39,10 @@ public class HelloServiceImpl implements HelloService {
 		}
 		return users;
 	}
+
+
+    @Override
+    public String sayByeBye(int i) {
+        return "88 \r\n ";
+    }
 }

@@ -9,4 +9,6 @@ public interface HelloService {
 	List<User> saveUsers(Map<String, List<User>> users);
 	
 	List<User> updateUsers(List<User> users);
+	
+	String sayByeBye(int i);
 }

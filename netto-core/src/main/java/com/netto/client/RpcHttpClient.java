@@ -62,13 +62,20 @@ public class RpcHttpClient extends AbstactRpcClient {
 			post.setEntity(se);
 
 			HttpResponse response = httpClient.execute(post);
-			HttpEntity entity = response.getEntity();
-			String body = EntityUtils.toString(entity, "UTF-8");
-			ServiceResponse res = gson.fromJson(body, ServiceResponse.class);
-			if (res.getSuccess()) {
-				return gson.fromJson(res.getBody(), method.getGenericReturnType());
-			} else {
-				throw new Exception(res.getBody());
+            HttpEntity entity = response.getEntity();
+            String body = EntityUtils.toString(entity, "UTF-8");            
+			if(response.getStatusLine().getStatusCode()!=200){
+
+
+    			ServiceResponse res = gson.fromJson(body, ServiceResponse.class);
+    			if (res.getSuccess()) {
+    				return gson.fromJson(res.getBody(), method.getGenericReturnType());
+    			} else {
+    				throw new Exception(res.getBody());
+    			}
+			}
+			else{
+			    throw new Exception(body);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

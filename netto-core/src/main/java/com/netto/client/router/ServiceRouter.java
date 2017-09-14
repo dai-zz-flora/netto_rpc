@@ -12,20 +12,27 @@ public class ServiceRouter {
 	private Map<String, String> routers;
 	private Map<String, ServiceProvider> providerMap = new HashMap<String, ServiceProvider>();
 
-	public ServiceRouter(ServiceProvider provider) {
-		AbstractServiceProvider obj = (AbstractServiceProvider) provider;
-		providerMap.put(obj.getServiceApp() + "." + obj.getServiceGroup(), obj);
-	}
+//	public ServiceRouter(ServiceProvider provider) {
+//		AbstractServiceProvider obj = (AbstractServiceProvider) provider;
+//		providerMap.put(obj.getServiceApp() + "." + obj.getServiceGroup(), obj);
+//	}
+	private String serviceApp;
 
-	public ServiceRouter(List<ServiceProvider> providers, Map<String, String> routers) {
+	public ServiceRouter(String serviceApp,List<ServiceProvider> providers, Map<String, String> routers) {
 		this.routers = routers;
+	    this.serviceApp = serviceApp;
 		for (ServiceProvider obj : providers) {
 			AbstractServiceProvider provider = (AbstractServiceProvider) obj;
-			providerMap.put(provider.getServiceApp() + "." + provider.getServiceGroup(), provider);
+			providerMap.put(this.serviceApp + "." + provider.getServiceGroup(), provider);
 		}
-	}
 
-	public ServiceProvider findProvider(String serviceApp, String serviceGroup) {
+	}
+	
+    public ServiceProvider findProvider() {
+        return this.findProvider(null);
+    }	
+
+	public ServiceProvider findProvider(String serviceGroup) {
 		if (serviceGroup == null) {
 			if (RpcContext.getRouterContext() != null) {
 				if (routers != null) {

@@ -25,11 +25,11 @@ import com.netto.context.ServiceAddressGroup;
 
 public class NginxServiceProvider extends AbstractServiceProvider {
 	private static Logger logger = Logger.getLogger(NginxServiceProvider.class);
-	private HttpConnectPool httPool;
+	private HttpConnectPool httpPool;
 
 	public NginxServiceProvider(String registry, String serviceApp, String serviceGroup) {
 		super(registry, serviceApp, serviceGroup);
-		this.httPool = new HttpConnectPool();
+		this.httpPool = new HttpConnectPool();
 	}
 
 	/**
@@ -37,7 +37,7 @@ public class NginxServiceProvider extends AbstractServiceProvider {
 	 */
 	public ConnectPool<?> getPool(String protocol) {
 		if (protocol.equals("http")) {
-			return this.httPool;
+			return this.httpPool;
 		} else {
 			// tcp协议需要到nginx上拿到服务器信息
 			return this.getTcpPool();
@@ -45,13 +45,13 @@ public class NginxServiceProvider extends AbstractServiceProvider {
 	}
 
 	private TcpConnectPool getTcpPool() {
-		ServiceProvider provider = this.getRouter().findProvider(this.getServiceApp(), this.getServiceGroup());
+		ServiceProvider provider = this.getRouter().findProvider(this.getServiceGroup());
 		return (TcpConnectPool) provider.getPool("tcp");
 	}
 
 	private ServiceRouter getRouter() {
 		List<ServiceProvider> providers = this.getProviders();
-		ServiceRouter router = new ServiceRouter(providers, this.getRouterMap());
+		ServiceRouter router = new ServiceRouter(this.getServiceApp(),providers, this.getRouterMap());
 		return router;
 	}
 
@@ -71,7 +71,7 @@ public class NginxServiceProvider extends AbstractServiceProvider {
 
 	@SuppressWarnings("unchecked")
 	private Map<String, String> getRouterMap() {
-		HttpClient httpClient = this.httPool.getResource();
+		HttpClient httpClient = this.httpPool.getResource();
 		try {
 			StringBuilder sb = new StringBuilder(50);
 			sb.append(this.getRegistry()).append(this.getRegistry().endsWith("/") ? "" : "/")
@@ -87,7 +87,7 @@ public class NginxServiceProvider extends AbstractServiceProvider {
 			logger.error(e.getMessage(), e);
 			throw new RuntimeException(e);
 		} finally {
-			this.httPool.release(httpClient);
+			this.httpPool.release(httpClient);
 		}
 	}
 

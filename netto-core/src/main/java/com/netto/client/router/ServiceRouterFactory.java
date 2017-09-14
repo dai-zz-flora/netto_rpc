@@ -1,25 +1,35 @@
 package com.netto.client.router;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import com.netto.client.pool.TcpConnectPool;
 import com.netto.client.provider.LocalServiceProvider;
 import com.netto.client.provider.NginxServiceProvider;
 import com.netto.client.provider.ServiceProvider;
+import com.netto.context.ServiceAddress;
 import com.netto.context.ServiceAddressGroup;
 import com.netto.filter.InvokeMethodFilter;
 
-public class ServiceRouterFactory implements FactoryBean<ServiceRouter> {
-	private List<ServiceAddressGroup> serverGroups;
+public class ServiceRouterFactory implements FactoryBean<ServiceRouter>,InitializingBean {
+
 	private ServiceAddressGroup serverGroup;
 	private Map<String, String> routers;
 	private GenericObjectPoolConfig poolConfig;
 	private List<InvokeMethodFilter> filters;
+	private List<String> servers;
+	
+
+    private String serviceApp;
+    private String serviceGroup;
+    private String registry;
 
 	public GenericObjectPoolConfig getPoolConfig() {
 		return poolConfig;
@@ -29,13 +39,7 @@ public class ServiceRouterFactory implements FactoryBean<ServiceRouter> {
 		this.poolConfig = poolConfig;
 	}
 
-	public List<ServiceAddressGroup> getServerGroups() {
-		return serverGroups;
-	}
-
-	public void setServerGroups(List<ServiceAddressGroup> serverGroups) {
-		this.serverGroups = serverGroups;
-	}
+	
 
 	public List<InvokeMethodFilter> getFilters() {
 		return filters;
@@ -45,25 +49,8 @@ public class ServiceRouterFactory implements FactoryBean<ServiceRouter> {
 		this.filters = filters;
 	}
 
-	public ServiceAddressGroup getServerGroup() {
-		return serverGroup;
-	}
+	
 
-	public void setServerGroup(ServiceAddressGroup serverGroup) {
-		// 对设置的服务器信息进行校验
-		if (serverGroup.getRegistry() == null) {
-			if (serverGroup.getServers() == null || serverGroup.getServers().size() == 0) {
-				throw new RuntimeException("no server list!");
-			}
-		}
-		if (serverGroup.getServiceApp() == null) {
-			throw new RuntimeException("no app of services!");
-		}
-		if (serverGroup.getServiceGroup() == null) {
-			serverGroup.setServiceGroup("*");
-		}
-		this.serverGroup = serverGroup;
-	}
 
 	public Map<String, String> getRouters() {
 		return routers;
@@ -74,32 +61,29 @@ public class ServiceRouterFactory implements FactoryBean<ServiceRouter> {
 	}
 
 	public ServiceRouter getObject() throws Exception {
-		if (this.getServerGroups() == null) {
-			this.setServerGroups(new ArrayList<ServiceAddressGroup>());
-			this.getServerGroups().add(this.getServerGroup());
-		}
+
 		List<ServiceProvider> providers = new ArrayList<ServiceProvider>();
-		for (ServiceAddressGroup serverGroup : this.serverGroups) {
-			ServiceProvider provider = null;
-			if (serverGroup.getRegistry() != null && serverGroup.getRegistry().startsWith("http")) {
+	
+		ServiceProvider provider = null;
+		if (serverGroup.getRegistry() != null && serverGroup.getRegistry().startsWith("http")) {
 
-				provider = new NginxServiceProvider(serverGroup.getRegistry(), serverGroup.getServiceApp(),
-						serverGroup.getServiceGroup());
+			provider = new NginxServiceProvider(serverGroup.getRegistry(), serverGroup.getServiceApp(),
+					serverGroup.getServiceGroup());
 
-			} else {
-				if (this.poolConfig == null) {
-					this.poolConfig = new GenericObjectPoolConfig();
-					this.poolConfig.setMaxTotal(100);
-
-				}
-				TcpConnectPool pool = new TcpConnectPool(serverGroup.getServers(), this.poolConfig);
-				provider = new LocalServiceProvider(serverGroup.getRegistry(), serverGroup.getServiceApp(),
-						serverGroup.getServiceGroup(), pool);
+		} else {
+			if (this.poolConfig == null) {
+				this.poolConfig = new GenericObjectPoolConfig();
+				this.poolConfig.setMaxTotal(100);
 
 			}
-			providers.add(provider);
+			TcpConnectPool pool = new TcpConnectPool(serverGroup.getServers(), this.poolConfig);
+			provider = new LocalServiceProvider(serverGroup.getRegistry(), serverGroup.getServiceApp(),
+					serverGroup.getServiceGroup(), pool);
+
 		}
-		return new ServiceRouter(providers, this.getRouters());
+		providers.add(provider);
+		
+		return new ServiceRouter(this.serviceApp,providers, this.getRouters());
 	}
 
 	public Class<?> getObjectType() {
@@ -109,5 +93,55 @@ public class ServiceRouterFactory implements FactoryBean<ServiceRouter> {
 	public boolean isSingleton() {
 		return true;
 	}
+
+    public void setServiceApp(String serviceApp) {
+        this.serviceApp = serviceApp;
+    }
+
+    public void setServiceGroup(String serviceGroup) {
+        this.serviceGroup = serviceGroup;
+    }
+
+    public void setRegistry(String registry) {
+        this.registry = registry;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        if(this.serverGroup==null){
+            ServiceAddressGroup serverGroup = new ServiceAddressGroup();
+            serverGroup.setRegistry(this.registry);
+            serverGroup.setServiceApp(this.serviceApp);
+            serverGroup.setServiceGroup(this.serviceGroup);
+            this.serverGroup = serverGroup;
+            
+            if(this.servers!=null){
+                List<ServiceAddress> addresses = servers.stream().map( server -> {
+                    String[] s = server.split(":");
+                    String host = s[0];
+                    int port = 1234;
+                    if(s.length>1){
+                        port = Integer.parseInt(s[0]);
+                    }
+                    
+                    ServiceAddress address = new ServiceAddress();
+                    address.setIp(host);
+                    address.setPort(port);
+                    return address;
+                    
+                }).collect(Collectors.toList());
+                serverGroup.setServers(addresses);
+            }
+        }
+        
+    }
+    
+    
+    
+    public void setServers(String servers) {
+        this.servers = Arrays.asList(servers.split(";"));
+
+    }
+
 
 }

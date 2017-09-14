@@ -27,24 +27,27 @@ public class NettoClient {
 	}
 
 	public static void nginx_http_tcp() throws Exception {
-		ServiceAddressGroup serverGroup = new ServiceAddressGroup();
-		serverGroup.setRegistry("http://127.0.0.1:8330/api/");
-		serverGroup.setServiceApp("myservice");
-		serverGroup.setServiceGroup("*");
+//		ServiceAddressGroup serverGroup = new ServiceAddressGroup();
+//		serverGroup.setRegistry("http://127.0.0.1:8330/api/");
+//		serverGroup.setServiceApp("myservice");
+//		serverGroup.setServiceGroup("*");
 
 		routerFactory = new ServiceRouterFactory();
-		routerFactory.setServerGroup(serverGroup);
-
+        routerFactory.setRegistry("http://127.0.0.1:8330/api/");
+        routerFactory.setServiceApp("myservice");
+        routerFactory.setServiceGroup("*");
+        routerFactory.afterPropertiesSet();
 		ReferenceBean refer = new ReferenceBean();
-		refer.setServiceUri("myservice/helloService");
-		refer.setRouterFactory(routerFactory);
+		refer.setServiceName("helloService");
+		refer.setRouter(routerFactory.getObject());
 		refer.setInterfaceClazz(HelloService.class);
 		refer.setTimeout(20 * 1000);
 		refer.setProtocol("http");
 
 		System.out.println("nginx_http_tcp begin-----------");
 		HelloService helloProxy = (HelloService) refer.getObject();
-		String res = helloProxy.sayHello("netto");
+        String res = helloProxy.sayByeBye(8);	
+		res = helloProxy.sayHello("netto");
 		System.out.println(res);
 		Map<String, List<User>> users = new HashMap<String, List<User>>();
 		users.put("abc", new ArrayList<User>());
@@ -66,23 +69,26 @@ public class NettoClient {
 	}
 
 	public static void nginx_tcp() throws Exception {
-		ServiceAddressGroup serverGroup = new ServiceAddressGroup();
-		serverGroup.setRegistry("http://127.0.0.1:8330/api/");
-		serverGroup.setServiceApp("myservice");
-		serverGroup.setServiceGroup("*");
+//		ServiceAddressGroup serverGroup = new ServiceAddressGroup();
+//		serverGroup.setRegistry("http://127.0.0.1:8330/api/");
+//		serverGroup.setServiceApp("myservice");
+//		serverGroup.setServiceGroup("*");
 
 		routerFactory = new ServiceRouterFactory();
-		routerFactory.setServerGroup(serverGroup);
-
+		routerFactory.setRegistry("http://127.0.0.1:8330/api/");
+		routerFactory.setServiceApp("myservice");
+		routerFactory.setServiceGroup("*");
+		routerFactory.afterPropertiesSet();
 		ReferenceBean refer = new ReferenceBean();
-		refer.setServiceUri("myservice/helloService");
-		refer.setRouterFactory(routerFactory);
+		refer.setServiceName("helloService");
+		refer.setRouter(routerFactory.getObject());
 		refer.setInterfaceClazz(HelloService.class);
 		refer.setTimeout(2000 * 1000);
 		refer.setProtocol("tcp");
 		System.out.println("nginx_tcp begin-----------");
 		HelloService helloProxy = (HelloService) refer.getObject();
-		String res = helloProxy.sayHello("netto");
+        String res = helloProxy.sayByeBye(8); 
+		 res = helloProxy.sayHello("netto");
 		System.out.println(res);
 		Map<String, List<User>> users = new HashMap<String, List<User>>();
 		users.put("abc", new ArrayList<User>());
@@ -107,7 +113,7 @@ public class NettoClient {
 		List<ServiceAddress> servers = new ArrayList<ServiceAddress>();
 		ServiceAddress address = new ServiceAddress();
 		address.setIp("localhost");
-		address.setPort(12345);
+		address.setPort(9229);
 		servers.add(address);
 
 		ServiceAddressGroup serverGroup = new ServiceAddressGroup();
@@ -117,11 +123,11 @@ public class NettoClient {
 		serverGroup.setServers(servers);
 
 		routerFactory = new ServiceRouterFactory();
-		routerFactory.setServerGroup(serverGroup);
+
 
 		ReferenceBean refer = new ReferenceBean();
-		refer.setServiceUri("netto-demo/helloService");
-		refer.setRouterFactory(routerFactory);
+		refer.setServiceName("helloService");
+		refer.setRouter(routerFactory.getObject());
 		refer.setInterfaceClazz(HelloService.class);
 		refer.setTimeout(2000 * 1000);
 		refer.setProtocol("tcp");
@@ -151,8 +157,8 @@ public class NettoClient {
 		System.out.println("service desc api begin------------");
 
 		refer = new ReferenceBean();
-		refer.setServiceUri("netto-demo/$serviceDesc");
-		refer.setRouterFactory(routerFactory);
+		refer.setServiceName("$serviceDesc");
+		refer.setRouter(routerFactory.getObject());
 		refer.setInterfaceClazz(ServiceDescApi.class);
 		refer.setTimeout(2 * 1000);
 		refer.setProtocol("tcp");

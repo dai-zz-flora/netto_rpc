@@ -2,29 +2,50 @@ package com.netto.client.bean;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.util.List;
 
 import org.springframework.beans.factory.FactoryBean;
 
 import com.netto.client.RpcHttpClient;
 import com.netto.client.RpcTcpClient;
-import com.netto.client.router.ServiceRouterFactory;
+import com.netto.client.router.ServiceRouter;
+
+import com.netto.filter.InvokeMethodFilter;
 
 public class ReferenceBean implements FactoryBean<Object> {
 	private String protocol = "tcp"; // tcp,http
 	private Class<?> interfaceClazz;
-	private String serviceUri; // app1/service1
-	private String serviceApp;
+
 	private String serviceName;
-	private int timeout;
-	private ServiceRouterFactory routerFactory;
+	
+	public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
 
-	public ServiceRouterFactory getRouterFactory() {
-		return routerFactory;
-	}
+    private int timeout;
+//	private ServiceRouterFactory routerFactory;
+	private ServiceRouter router;
+    private List<InvokeMethodFilter> filters;
+	
+    public List<InvokeMethodFilter> getFilters() {
+        return filters;
+    }
 
-	public void setRouterFactory(ServiceRouterFactory routerFactory) {
-		this.routerFactory = routerFactory;
-	}
+    public void setFilters(List<InvokeMethodFilter> filters) {
+        this.filters = filters;
+    }	
+
+	public void setRouter(ServiceRouter router) {
+        this.router = router;
+    }
+
+//    public ServiceRouterFactory getRouterFactory() {
+//		return routerFactory;
+//	}
+//
+//	public void setRouterFactory(ServiceRouterFactory routerFactory) {
+//		this.routerFactory = routerFactory;
+//	}
 
 	public int getTimeout() {
 		return timeout;
@@ -42,16 +63,16 @@ public class ReferenceBean implements FactoryBean<Object> {
 		this.interfaceClazz = interfaceClazz;
 	}
 
-	public String getServiceUri() {
-		return this.serviceUri;
-	}
+//	public String getServiceUri() {
+//		return this.serviceUri;
+//	}
 
-	public void setServiceUri(String serviceUri) {
-		String[] temps = serviceUri.split("/");
-		this.serviceName = temps[1];
-		this.serviceApp = temps[0];
-		this.serviceUri = serviceUri;
-	}
+//	public void setServiceUri(String serviceUri) {
+//		String[] temps = serviceUri.split("/");
+//		this.serviceName = temps[1];
+//		this.serviceApp = temps[0];
+//		this.serviceUri = serviceUri;
+//	}
 
 	public String getProtocol() {
 		return protocol;
@@ -64,11 +85,11 @@ public class ReferenceBean implements FactoryBean<Object> {
 	public Object getObject() throws Exception {
 		InvocationHandler client;
 		if (protocol.equals("tcp")) {
-			client = new RpcTcpClient(this.getRouterFactory().getObject().findProvider(serviceApp, null),
-					this.routerFactory.getFilters(), serviceName, this.timeout);
+			client = new RpcTcpClient(this.router.findProvider(),
+					filters, serviceName, this.timeout);
 		} else {
-			client = new RpcHttpClient(this.getRouterFactory().getObject().findProvider(serviceApp, null),
-					this.routerFactory.getFilters(), this.serviceName, this.timeout);
+			client = new RpcHttpClient(this.router.findProvider(),
+					filters, this.serviceName, this.timeout);
 		}
 		Object proxy = Proxy.newProxyInstance(interfaceClazz.getClassLoader(), new Class<?>[] { interfaceClazz },
 				client);
