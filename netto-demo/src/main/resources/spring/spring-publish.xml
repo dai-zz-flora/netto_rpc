@@ -15,7 +15,7 @@
 
 	
 	<bean class="com.netto.server.NettyServer">
-		<property name="port" value="9229"/>	
+		<property name="port" value="${netto.port}"/>	
 	</bean>
 		
 </beans>
