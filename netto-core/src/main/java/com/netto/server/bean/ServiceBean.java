@@ -16,4 +16,16 @@ public class ServiceBean {
 	public void setRef(String ref) {
 		this.ref = ref;
 	}
+	
+	private String serviceName ;
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String name) {
+        this.serviceName = name;
+    }
+	
+	
 }

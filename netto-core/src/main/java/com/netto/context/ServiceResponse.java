@@ -2,7 +2,7 @@ package com.netto.context;
 
 public class ServiceResponse {
 	private int invokeId;
-	private Boolean success;
+	private Boolean success = false;
 	private String body;
 
 	public int getInvokeId() {

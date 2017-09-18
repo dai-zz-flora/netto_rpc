@@ -3,10 +3,13 @@ package com.netto.demo.impl;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.stereotype.Service;
+
 import com.netto.demo.Book;
 import com.netto.demo.HelloService;
 import com.netto.demo.User;
 
+@Service
 public class HelloServiceImpl implements HelloService {
 
 	public String sayHello(String name) {

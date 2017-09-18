@@ -48,17 +48,7 @@ public class AsynchronousChannelHandler extends AbstractServiceChannelHandler im
         
     } 
     
-    public void error(ChannelHandlerContext ctx, String message){
-        ServiceResponse resObj = new ServiceResponse();
-        resObj.setSuccess(false);
-        resObj.setBody(message);
-        String response = gson.toJson(resObj);
-        ByteBuf encoded = ctx.alloc().buffer(4 * response.length());
-        encoded.writeBytes(response.getBytes());
-        encoded.writeCharSequence(Constants.PROTOCOL_REQUEST_DELIMITER, Charset.defaultCharset());
-        ctx.write(encoded);
-        ctx.flush();
-    }
+
     
     @Override
     public void received(ChannelHandlerContext ctx, String message) throws Exception {
@@ -70,9 +60,7 @@ public class AsynchronousChannelHandler extends AbstractServiceChannelHandler im
                     try {
                         AsynchronousChannelHandler.this.handle(ctx, message);
                     } catch (Throwable t) {                    
-                        logger.error("error when call handler ",t);
-                        AsynchronousChannelHandler.this.error(ctx, "error when call handler "+t.getMessage());
-                        
+                        logger.error("error when call handler ",t);                        
                     }
                     
                 }
@@ -80,8 +68,7 @@ public class AsynchronousChannelHandler extends AbstractServiceChannelHandler im
             });
         }
         catch(Throwable t){
-            logger.error("error when submit task ",t);
-            this.error(ctx, t.getMessage());
+            logger.error("error when submit task ",t);            
         }
     }
 

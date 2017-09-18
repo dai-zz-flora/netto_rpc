@@ -3,6 +3,7 @@ package com.netto.server.handler;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -16,17 +17,19 @@ import com.netto.server.desc.impl.ServiceDescApiImpl;
 import com.netto.util.Constants;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 
-public abstract class AbstractServiceChannelHandler implements NettoServiceChannelHandler{
+public abstract class AbstractServiceChannelHandler implements NettoServiceChannelHandler {
     protected static Gson gson = new Gson();
     protected static Logger logger = Logger.getLogger(SynchronousChannelHandler.class);
-    
+
     private Map<String, NettoServiceBean> serviceBeans;
     private List<InvokeMethodFilter> filters;
 
-    
-    public AbstractServiceChannelHandler(Map<String, NettoServiceBean> serviceBeans,  List<InvokeMethodFilter> filters) {
+    private long reponseWriteTimeout = 3;// 3 seconds;
+
+    public AbstractServiceChannelHandler(Map<String, NettoServiceBean> serviceBeans, List<InvokeMethodFilter> filters) {
         this.serviceBeans = serviceBeans;
         ServiceBean bean = new ServiceBean();
         bean.setRef("$serviceDesc");
@@ -34,40 +37,62 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
         this.serviceBeans.put("$serviceDesc", serivceBean);
         this.filters = filters;
 
-    }    
-       
+    }
 
-    public void handle(ChannelHandlerContext ctx, String message) throws Exception {
-        ServiceResponse resObj = new ServiceResponse();
-        try{
-            ServiceRequest reqObj = gson.fromJson(message, ServiceRequest.class);
-            if (serviceBeans.containsKey(reqObj.getServiceName())) {
-                ServiceProxy proxy = new ServiceProxy(reqObj, serviceBeans.get(reqObj.getServiceName()),
-                        filters);
-    
-                try {
-                    resObj.setSuccess(true);
-                    resObj.setBody(proxy.callService());
-                } catch (Throwable t) {
-                    logger.error(t.getMessage(), t);
-                    resObj.setSuccess(false);
-                    resObj.setBody(t.getMessage());
-                }
-            } else {
-                resObj.setSuccess(false);
-                resObj.setBody("service " + reqObj.getServiceName() + " is not exsist!");
-            }
-        }
-        catch(Throwable t){
-            logger.error("error when process request "+message,t);
-        }
+
+    public void sendResponse(ChannelHandlerContext ctx, ServiceResponse resObj) {
         String response = gson.toJson(resObj);
         ByteBuf encoded = ctx.alloc().buffer(4 * response.length());
         encoded.writeBytes(response.getBytes());
         encoded.writeCharSequence(Constants.PROTOCOL_REQUEST_DELIMITER, Charset.defaultCharset());
-        ctx.write(encoded);
+        ChannelFuture future = ctx.write(encoded);
         ctx.flush();
-        
+
+        try {
+            boolean success = future.await(this.reponseWriteTimeout, TimeUnit.SECONDS);
+
+            if (future.cause() != null) {
+                throw new ReplyException("error response error ", future.cause());
+            } else if (!success) {
+                throw new ReplyException("response error timeout");
+            }
+        } catch (InterruptedException e) {
+            throw new ReplyException("awit Interrupted", e);
+        }
+    }
+
+    public void handle(ChannelHandlerContext ctx, String message) throws Exception {
+        ServiceResponse resObj = new ServiceResponse();
+        try {
+            resObj.setSuccess(false);
+            ServiceRequest reqObj = gson.fromJson(message, ServiceRequest.class);
+            if (serviceBeans.containsKey(reqObj.getServiceName())) {
+                ServiceProxy proxy = new ServiceProxy(reqObj, serviceBeans.get(reqObj.getServiceName()), filters);
+
+                try {
+
+                    resObj.setBody(proxy.callService());
+                    resObj.setSuccess(true);
+
+                } catch (Throwable t) {
+
+                    logger.error(t.getMessage(), t);
+                    resObj.setBody(t.getMessage());
+                }
+                this.sendResponse(ctx, resObj);
+
+            } else {
+                resObj.setBody("service " + reqObj.getServiceName() + " is not exsist!");
+                this.sendResponse(ctx, resObj);
+            }
+        } catch (ReplyException e) {
+            logger.error("error when reply request " + message, e);
+        } catch (Throwable t) {
+            logger.error("error when process request " + message, t);
+            resObj.setBody("error when process request " + message);
+            this.sendResponse(ctx, resObj);
+        }
+
     }
 
 }
