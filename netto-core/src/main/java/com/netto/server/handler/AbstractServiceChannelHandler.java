@@ -52,12 +52,12 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
             boolean success = future.await(this.reponseWriteTimeout, TimeUnit.SECONDS);
 
             if (future.cause() != null) {
-                throw new ReplyException("error response error ", future.cause());
+                throw new RemoteAccessException("error response error ", future.cause());
             } else if (!success) {
-                throw new ReplyException("response error timeout");
+                throw new RemoteAccessException("response error timeout");
             }
         } catch (InterruptedException e) {
-            throw new ReplyException("awit Interrupted", e);
+            throw new RemoteAccessException("awit Interrupted", e);
         }
     }
 
@@ -85,7 +85,7 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
                 resObj.setBody("service " + reqObj.getServiceName() + " is not exsist!");
                 this.sendResponse(ctx, resObj);
             }
-        } catch (ReplyException e) {
+        } catch (RemoteAccessException e) {
             logger.error("error when reply request " + message, e);
         } catch (Throwable t) {
             logger.error("error when process request " + message, t);

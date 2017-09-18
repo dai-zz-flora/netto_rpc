@@ -21,7 +21,7 @@ public class NettoClient {
 	private static ServiceRouterFactory routerFactory;
 
 	public static void main(String[] args) throws Exception {
-	    nginx_tcp();
+	    nginx_http_tcp();
 		CountDownLatch latch = new CountDownLatch(1);
 		latch.await();
 	}

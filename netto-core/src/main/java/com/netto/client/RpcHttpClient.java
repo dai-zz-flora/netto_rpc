@@ -64,7 +64,7 @@ public class RpcHttpClient extends AbstactRpcClient {
 			HttpResponse response = httpClient.execute(post);
             HttpEntity entity = response.getEntity();
             String body = EntityUtils.toString(entity, "UTF-8");            
-			if(response.getStatusLine().getStatusCode()!=200){
+			if(response.getStatusLine().getStatusCode()==200){
 
 
     			ServiceResponse res = gson.fromJson(body, ServiceResponse.class);
