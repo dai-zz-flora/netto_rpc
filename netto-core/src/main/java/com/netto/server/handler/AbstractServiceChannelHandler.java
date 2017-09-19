@@ -47,6 +47,7 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
         encoded.writeCharSequence(Constants.PROTOCOL_REQUEST_DELIMITER, Charset.defaultCharset());
         ChannelFuture future = ctx.write(encoded);
         ctx.flush();
+        
 
         try {
             boolean success = future.await(this.reponseWriteTimeout, TimeUnit.SECONDS);
@@ -58,6 +59,9 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
             }
         } catch (InterruptedException e) {
             throw new RemoteAccessException("awit Interrupted", e);
+        }
+        finally{
+            encoded.release();
         }
     }
 
