@@ -163,7 +163,7 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
         EventLoopGroup workerGroup = new NioEventLoopGroup(numOfIOWorkerThreads, worker);
 
         NettoServiceChannelHandler handler = new AsynchronousChannelHandler(serviceBeans, filters,
-                this.numOfHandlerWorker, this.maxWaitingQueueSize);
+                 this.maxWaitingQueueSize,this.numOfHandlerWorker);
 
         try {
             ServerBootstrap b = new ServerBootstrap(); // (2)
