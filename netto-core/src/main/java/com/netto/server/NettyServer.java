@@ -42,7 +42,8 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
     private int port = 12345;
 
     private List<InvokeMethodFilter> filters;
-    private int numWorkerThreads = 16;
+    private int numOfIOWorkerThreads = 16;
+
     private int maxRequestSize = 1024 * 1024;
     private ApplicationContext applicationContext;
     private Map<String, Object> refBeans;
@@ -54,7 +55,7 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
         this.numOfHandlerWorker = numOfHandlerWorker;
     }
 
-    private int maxWaitingQueueSize = Integer.MAX_VALUE;
+    private int maxWaitingQueueSize = 1024*1024;
 
     public NettyServer() {
     }
@@ -71,13 +72,6 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
         this.maxRequestSize = maxRequestSize;
     }
 
-    public int getNumWorkerThreads() {
-        return numWorkerThreads;
-    }
-
-    public void setNumWorkerThreads(int numWorkerThreads) {
-        this.numWorkerThreads = numWorkerThreads;
-    }
 
     public NettyServer(int port) {
         this.port = port;
@@ -162,11 +156,11 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
     private void run() throws Exception {
 
         ExecutorService boss = Executors.newSingleThreadExecutor(new NamedThreadFactory("NettyServerBoss", true));
-        ExecutorService worker = Executors.newFixedThreadPool(numWorkerThreads,
+        ExecutorService worker = Executors.newFixedThreadPool(numOfIOWorkerThreads,
                 new NamedThreadFactory("NettyServerWorker", true));
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1, boss); // (1)
-        EventLoopGroup workerGroup = new NioEventLoopGroup(numWorkerThreads, worker);
+        EventLoopGroup workerGroup = new NioEventLoopGroup(numOfIOWorkerThreads, worker);
 
         NettoServiceChannelHandler handler = new AsynchronousChannelHandler(serviceBeans, filters,
                 this.numOfHandlerWorker, this.maxWaitingQueueSize);
@@ -209,6 +203,15 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    
+    public int getNumOfIOWorkerThreads() {
+        return numOfIOWorkerThreads;
+    }
+
+    public void setNumOfIOWorkerThreads(int numOfIOWorkerThreads) {
+        this.numOfIOWorkerThreads = numOfIOWorkerThreads;
     }
 
 }

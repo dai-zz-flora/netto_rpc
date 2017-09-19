@@ -1,6 +1,6 @@
 #!/bin/sh
 source /etc/profile
-MAIN_CLASS=com.sprucetec.deploy.schedule.DeployScheduleLauncher
+MAIN_CLASS=com.netto.demo.DemoServerLauncher
 PIDPROC=`ps -ef | grep "${MAIN_CLASS}" | grep -v 'grep'| awk '{print $2}'`
 
 if [ -z "$PIDPROC" ];then

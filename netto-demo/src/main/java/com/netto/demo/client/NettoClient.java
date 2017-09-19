@@ -33,7 +33,7 @@ public class NettoClient {
 //		serverGroup.setServiceGroup("*");
 
 		routerFactory = new ServiceRouterFactory();
-        routerFactory.setRegistry("http://127.0.0.1:8330/api/");
+        routerFactory.setRegistry("http://192.168.2.38:8330/api/");
         routerFactory.setServiceApp("myservice");
         routerFactory.setServiceGroup("*");
         routerFactory.afterPropertiesSet();
