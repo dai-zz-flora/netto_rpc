@@ -21,7 +21,7 @@ public class NettoClient {
 	private static ServiceRouterFactory routerFactory;
 
 	public static void main(String[] args) throws Exception {
-	    nginx_http_tcp();
+	    local_tcp();
 		CountDownLatch latch = new CountDownLatch(1);
 		latch.await();
 	}
@@ -118,12 +118,18 @@ public class NettoClient {
 
 		ServiceAddressGroup serverGroup = new ServiceAddressGroup();
 		serverGroup.setRegistry(null);
-		serverGroup.setServiceApp("netto-demo");
+		serverGroup.setServiceApp("myservice");
 		serverGroup.setServiceGroup("*");
 		serverGroup.setServers(servers);
 
 		routerFactory = new ServiceRouterFactory();
+		
+        
+        routerFactory.setServiceApp("myservice");
+        routerFactory.setServiceGroup("*");
+        routerFactory.setServers("127.0.0.1:9229");	
 
+		routerFactory.afterPropertiesSet();
 
 		ReferenceBean refer = new ReferenceBean();
 		refer.setServiceName("helloService");
@@ -131,7 +137,7 @@ public class NettoClient {
 		refer.setInterfaceClazz(HelloService.class);
 		refer.setTimeout(2000 * 1000);
 		refer.setProtocol("tcp");
-
+		
 		System.out.println("local_tcp begin-----------");
 		HelloService helloProxy = (HelloService) refer.getObject();
 		String res = helloProxy.sayHello("netto");

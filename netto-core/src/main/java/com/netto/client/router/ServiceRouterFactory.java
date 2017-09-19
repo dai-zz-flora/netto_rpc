@@ -121,7 +121,7 @@ public class ServiceRouterFactory implements FactoryBean<ServiceRouter>,Initiali
                     String host = s[0];
                     int port = 1234;
                     if(s.length>1){
-                        port = Integer.parseInt(s[0]);
+                        port = Integer.parseInt(s[1]);
                     }
                     
                     ServiceAddress address = new ServiceAddress();

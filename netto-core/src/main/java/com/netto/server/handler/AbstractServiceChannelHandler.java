@@ -28,7 +28,7 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
     private Map<String, NettoServiceBean> serviceBeans;
     private List<InvokeMethodFilter> filters;
 
-    private long reponseWriteTimeout = 3;// 3 seconds;
+    private long reponseWriteTimeout = 10;// 3 seconds;
 
     public AbstractServiceChannelHandler(Map<String, NettoServiceBean> serviceBeans, List<InvokeMethodFilter> filters) {
         this.serviceBeans = serviceBeans;
