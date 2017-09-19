@@ -1,5 +1,6 @@
 package com.netto.server.handler;
 
+import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -41,12 +42,15 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
 
 
     public void sendResponse(ChannelHandlerContext ctx, ServiceResponse resObj) {
-        String response = gson.toJson(resObj);
-        ByteBuf encoded = ctx.alloc().buffer(4 * response.length());
-        encoded.writeBytes(response.getBytes());
-        encoded.writeCharSequence(Constants.PROTOCOL_REQUEST_DELIMITER, Charset.defaultCharset());
-        ChannelFuture future = ctx.write(encoded);
-        ctx.flush();
+        StringWriter writer =new StringWriter();
+        gson.toJson(resObj,writer);
+        writer.write(Constants.PROTOCOL_REQUEST_DELIMITER);
+//        ByteBuf encoded = ctx.alloc().buffer(4 * response.length());
+//        encoded.writeBytes(response.getBytes());
+//        encoded.writeCharSequence(Constants.PROTOCOL_REQUEST_DELIMITER, Charset.defaultCharset());
+//        ChannelFuture future = ctx.write(encoded);
+//        ctx.flush();
+        ChannelFuture future = ctx.writeAndFlush(writer.toString());
         
 
         try {
@@ -61,7 +65,7 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
             throw new RemoteAccessException("awit Interrupted", e);
         }
         finally{
-            encoded.release();
+        
         }
     }
 
