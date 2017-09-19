@@ -26,7 +26,7 @@ if [ ! -x "$JAVACMD" ] ; then
 fi
 
 if [ -z "$OPTS_MEMORY" ] ; then
-    OPTS_MEMORY="-server -Xms4G -Xmx4G  -Xmn2G -Xss512k -XX:MetaspaceSize=1G -XX:MaxMetaspaceSize=1G"
+    OPTS_MEMORY="-server -Xms2G -Xmx2G  -Xmn2G -Xss512k -XX:MetaspaceSize=1G -XX:MaxMetaspaceSize=1G"
 fi
 
 nohup "$JAVACMD" $JAVA_OPTS \
