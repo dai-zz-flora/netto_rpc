@@ -51,6 +51,8 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
     private Map<String, NettoServiceBean> serviceBeans;
 
     private int numOfHandlerWorker = 256;
+    
+    private int backlog = 1024*1024;
 
     public void setNumOfHandlerWorker(int numOfHandlerWorker) {
         this.numOfHandlerWorker = numOfHandlerWorker;
@@ -168,7 +170,7 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
         try {
             ServerBootstrap b = new ServerBootstrap(); // (2)
             b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class) // (3)
-                    .option(ChannelOption.SO_BACKLOG, 1024).childHandler(new ChannelInitializer<SocketChannel>() { // (4)
+                    .option(ChannelOption.SO_BACKLOG, backlog).childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
 
