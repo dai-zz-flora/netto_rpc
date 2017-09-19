@@ -156,9 +156,8 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
 
     private void run() throws Exception {
 
-        ExecutorService boss = Executors.newSingleThreadExecutor(new NamedThreadFactory("NettyServerBoss", true));
-        ExecutorService worker = Executors.newFixedThreadPool(numOfIOWorkerThreads,
-                new NamedThreadFactory("NettyServerWorker", true));
+        ExecutorService boss = Executors.newCachedThreadPool(new NamedThreadFactory("NettyServerBoss", true));
+        ExecutorService worker = Executors.newCachedThreadPool(new NamedThreadFactory("NettyServerWorker", true));
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1, boss); // (1)
         EventLoopGroup workerGroup = new NioEventLoopGroup(numOfIOWorkerThreads, worker);
