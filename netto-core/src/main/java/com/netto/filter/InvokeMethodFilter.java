@@ -1,11 +1,11 @@
 package com.netto.filter;
 
-import java.lang.reflect.Method;
+import com.netto.context.Invocation;
 
 public interface InvokeMethodFilter {
-	void invokeBefore(Object proxy, Method method, Object[] args);
+	void invokeBefore(Invocation invocation);
 
-	void invokeAfter(Object proxy, Method method, Object[] args);
+	void invokeAfter(Invocation invocation);
 
-	void invokeException(Object proxy, Method method, Object[] args, Throwable t);
+	void invokeException(Invocation invocation, Throwable t);
 }

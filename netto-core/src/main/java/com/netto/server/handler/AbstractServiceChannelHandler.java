@@ -55,14 +55,15 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
 
         try {
             boolean success = future.await(this.reponseWriteTimeout, TimeUnit.SECONDS);
-
+            
+        
             if (future.cause() != null) {
                 throw new RemoteAccessException("error response error ", future.cause());
             } else if (!success) {
                 throw new RemoteAccessException("response error timeout");
             }
         } catch (InterruptedException e) {
-            throw new RemoteAccessException("awit Interrupted", e);
+            throw new RemoteAccessException("await Interrupted", e);
         }
         finally{
         
@@ -70,7 +71,7 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
     }
 
     public void handle(ChannelHandlerContext ctx, String message) throws Exception {
-        ServiceResponse resObj = new ServiceResponse();
+        ServiceResponse resObj = new ServiceResponse();        
         try {
             resObj.setSuccess(false);
             ServiceRequest reqObj = gson.fromJson(message, ServiceRequest.class);
