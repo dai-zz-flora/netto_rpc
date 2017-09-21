@@ -24,8 +24,9 @@ public class NettyServerJsonHandler extends SimpleChannelInboundHandler<byte[]> 
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		super.exceptionCaught(ctx, cause);
-		ctx.close();
+        ctx.close();	    
+		logger.error("channel error",cause);
+
 	}
 
     @Override

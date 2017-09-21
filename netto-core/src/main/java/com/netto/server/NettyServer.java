@@ -54,9 +54,7 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
     
     private int backlog = 1024*1024;
 
-    public void setNumOfHandlerWorker(int numOfHandlerWorker) {
-        this.numOfHandlerWorker = numOfHandlerWorker;
-    }
+
 
     private int maxWaitingQueueSize = 1024*1024;
 
@@ -217,5 +215,17 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
     public void setNumOfIOWorkerThreads(int numOfIOWorkerThreads) {
         this.numOfIOWorkerThreads = numOfIOWorkerThreads;
     }
+    
+    public int getBacklog() {
+        return backlog;
+    }
+
+    public void setBacklog(int backlog) {
+        this.backlog = backlog;
+    }
+
+    public void setNumOfHandlerWorker(int numOfHandlerWorker) {
+        this.numOfHandlerWorker = numOfHandlerWorker;
+    }    
 
 }
