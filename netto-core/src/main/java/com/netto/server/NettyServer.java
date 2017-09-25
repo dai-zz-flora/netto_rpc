@@ -36,6 +36,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 
 import io.netty.handler.codec.bytes.ByteArrayDecoder;
+import io.netty.handler.codec.json.JsonObjectDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
 public class NettyServer implements InitializingBean, ApplicationContextAware {
@@ -173,8 +174,9 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
                         public void initChannel(SocketChannel ch) throws Exception {
 
                             ChannelPipeline p = ch.pipeline();
-                            p.addLast("framer", new DelimiterBasedFrameDecoder(maxRequestSize,
-                                    Constants.delimiterAsByteBufArray()));
+//                            p.addLast("framer", new DelimiterBasedFrameDecoder(maxRequestSize,
+//                                    Constants.delimiterAsByteBufArray()));
+                            p.addLast("framer",new JsonObjectDecoder(maxRequestSize));                            
                             p.addLast("decoder", new ByteArrayDecoder());
                             p.addLast("encoder", new StringEncoder());                                
                             p.addLast("handler", new NettyServerJsonHandler(handler));

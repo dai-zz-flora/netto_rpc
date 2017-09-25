@@ -74,7 +74,7 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
         ServiceResponse resObj = new ServiceResponse();        
         try {
             resObj.setSuccess(false);
-            ServiceRequest reqObj = gson.fromJson(message, ServiceRequest.class);
+            ServiceRequest reqObj = gson.fromJson(message, ServiceRequest.class);           
             if (serviceBeans.containsKey(reqObj.getServiceName())) {
                 ServiceProxy proxy = new ServiceProxy(reqObj, serviceBeans.get(reqObj.getServiceName()), filters);
 

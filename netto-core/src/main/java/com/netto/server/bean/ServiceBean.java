@@ -8,6 +8,8 @@ package com.netto.server.bean;
  */
 public class ServiceBean {
 	private String ref;
+	
+    private long timeout;
 
 	public String getRef() {
 		return ref;
@@ -27,5 +29,16 @@ public class ServiceBean {
         this.serviceName = name;
     }
 	
+
+
+    public long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
+    }
+    
+    
 	
 }
