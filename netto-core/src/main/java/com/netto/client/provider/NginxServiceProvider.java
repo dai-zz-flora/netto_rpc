@@ -26,10 +26,12 @@ import com.netto.context.ServiceAddressGroup;
 public class NginxServiceProvider extends AbstractServiceProvider {
 	private static Logger logger = Logger.getLogger(NginxServiceProvider.class);
 	private HttpConnectPool httpPool;
+    
 
-	public NginxServiceProvider(String registry, String serviceApp, String serviceGroup) {
-		super(registry, serviceApp, serviceGroup);
+	public NginxServiceProvider(String registry, String serviceApp, String serviceGroup,boolean needSignature) {
+		super(registry, serviceApp, serviceGroup,needSignature);
 		this.httpPool = new HttpConnectPool();
+
 	}
 
 	/**
@@ -63,7 +65,7 @@ public class NginxServiceProvider extends AbstractServiceProvider {
 		for (ServiceAddressGroup serverGroup : serverGroups) {
 			TcpConnectPool pool = new TcpConnectPool(serverGroup.getServers(), config);
 			ServiceProvider provider = new LocalServiceProvider(this.getRegistry(), serverGroup.getServiceApp(),
-					serverGroup.getServiceGroup(), pool);
+					serverGroup.getServiceGroup(), pool,this.needSignature());
 			providers.add(provider);
 		}
 		return providers;

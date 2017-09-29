@@ -21,7 +21,7 @@ public class NettoClient {
 	private static ServiceRouterFactory routerFactory;
 
 	public static void main(String[] args) throws Exception {
-	    local_tcp();
+	    nginx_http_tcp();
 		CountDownLatch latch = new CountDownLatch(1);
 		latch.await();
 	}
@@ -33,7 +33,7 @@ public class NettoClient {
 //		serverGroup.setServiceGroup("*");
 
 		routerFactory = new ServiceRouterFactory();
-        routerFactory.setRegistry("http://192.168.2.38:8330/api/");
+        routerFactory.setRegistry("http://127.0.0.1:8330/api/");
         routerFactory.setServiceApp("myservice");
         routerFactory.setServiceGroup("*");
         routerFactory.afterPropertiesSet();
@@ -79,6 +79,7 @@ public class NettoClient {
 		routerFactory.setServiceApp("myservice");
 		routerFactory.setServiceGroup("*");
 		routerFactory.afterPropertiesSet();
+		routerFactory.setNeedSignature(true);
 		ReferenceBean refer = new ReferenceBean();
 		refer.setServiceName("helloService");
 		refer.setRouter(routerFactory.getObject());
@@ -149,7 +150,7 @@ public class NettoClient {
 		u.setAge(10);
 		List<Book> books = new ArrayList<Book>();
 		Book book = new Book();
-		book.setName("人类简史");
+		book.setName("{\"name\":\"test\"}");
 		books.add(book);
 		u.setBooks(books);
 		users.get("abc").add(u);

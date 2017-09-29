@@ -1,11 +1,21 @@
 package com.netto.context;
 
-public class ServiceResponse {
+public class ServiceResponse<T> {
 	private int invokeId;
 	private Boolean success = false;
-	private String body;
 
-	public int getInvokeId() {
+	
+	private T retObject;
+
+	public T getRetObject() {
+        return retObject;
+    }
+
+    public void setRetObject(T retObject) {
+        this.retObject = retObject;
+    }
+
+    public int getInvokeId() {
 		return invokeId;
 	}
 
@@ -21,11 +31,7 @@ public class ServiceResponse {
 		this.success = success;
 	}
 
-	public String getBody() {
-		return body;
-	}
 
-	public void setBody(String body) {
-		this.body = body;
-	}
+
+
 }

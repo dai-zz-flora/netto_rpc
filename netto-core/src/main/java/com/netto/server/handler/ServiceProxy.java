@@ -3,7 +3,7 @@ package com.netto.server.handler;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import com.google.gson.Gson;
+
 import com.netto.context.Invocation;
 import com.netto.context.ServiceRequest;
 import com.netto.filter.InvokeMethodFilter;
@@ -12,7 +12,7 @@ import com.netto.server.bean.NettoServiceBean;
 public class ServiceProxy {
 	private ServiceRequest req;
 	private NettoServiceBean serviceBean;
-	private static Gson gson = new Gson();
+
 	private List<InvokeMethodFilter> filters;
 
 	public ServiceProxy(ServiceRequest req, NettoServiceBean serviceBean, List<InvokeMethodFilter> filters) {
@@ -21,18 +21,19 @@ public class ServiceProxy {
 		this.filters = filters;
 	}
 
-	public String callService() throws Throwable {
-
-		Method m = getMethod(this.serviceBean.getObject().getClass(), this.req.getMethodName(), req.getArgs().size());
-		Object[] args = new Object[req.getArgs().size()];
+	public Object callService() throws Throwable {
+	    int size = req.getArgs()==null?0:req.getArgs().size();
+	   
+		Method m = getMethod(this.serviceBean.getObject().getClass(), this.req.getMethodName(), size);
+		Object[] args = req.getArgs()==null?new Object[0]:req.getArgs().toArray();
 		Invocation invocation = new Invocation(this.req.getServiceName(), this.serviceBean, m, args);
 		try {
 			this.invokeFiltersBefore(invocation);
-			for (int i = 0; i < req.getArgs().size(); i++) {
-				args[i] = gson.fromJson(req.getArgs().get(i), m.getGenericParameterTypes()[i]);
-			}
+//			for (int i = 0; i < req.getArgs().size(); i++) {
+//				args[i] = gson.fromJson(req.getArgs().get(i), m.getGenericParameterTypes()[i]);
+//			}
 			Object res = m.invoke(this.serviceBean.getObject(), args);
-			return gson.toJson(res);
+			return res;
 		} catch (Throwable t) {
 			this.invokeFiltersException(invocation, t);
 			throw t;

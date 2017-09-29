@@ -1,26 +1,18 @@
 package com.netto.server.handler;
 
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import com.netto.context.ServiceResponse;
 import com.netto.filter.InvokeMethodFilter;
 import com.netto.server.NamedThreadFactory;
 import com.netto.server.bean.NettoServiceBean;
-import com.netto.util.Constants;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 
 
@@ -51,7 +43,7 @@ public class AsynchronousChannelHandler extends AbstractServiceChannelHandler im
 
     
     @Override
-    public void received(ChannelHandlerContext ctx, String message) throws Exception {
+    public void received(ChannelHandlerContext ctx, NettoMessage message) throws Exception {
         try{
             this.executor.execute(new Runnable(){
     

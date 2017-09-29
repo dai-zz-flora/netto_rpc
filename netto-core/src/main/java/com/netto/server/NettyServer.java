@@ -17,14 +17,12 @@ import com.netto.filter.InvokeMethodFilter;
 import com.netto.server.bean.NettoServiceBean;
 import com.netto.server.bean.ServiceBean;
 import com.netto.server.handler.AsynchronousChannelHandler;
+import com.netto.server.handler.NettoFrameDecoder;
+import com.netto.server.handler.NettoMessageDecoder;
 import com.netto.server.handler.NettoServiceChannelHandler;
-import com.netto.server.handler.NettyServerJsonHandler;
-import com.netto.server.handler.SynchronousChannelHandler;
-import com.netto.util.Constants;
+import com.netto.server.handler.NettyNettoMessageHandler;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -33,10 +31,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-
-import io.netty.handler.codec.bytes.ByteArrayDecoder;
-import io.netty.handler.codec.json.JsonObjectDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
 public class NettyServer implements InitializingBean, ApplicationContextAware {
@@ -54,10 +48,9 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
     private int numOfHandlerWorker = 256;
     
     private int backlog = 1024*1024;
-
-
-
     private int maxWaitingQueueSize = 1024*1024;
+    
+
 
     public NettyServer() {
     }
@@ -176,10 +169,12 @@ public class NettyServer implements InitializingBean, ApplicationContextAware {
                             ChannelPipeline p = ch.pipeline();
 //                            p.addLast("framer", new DelimiterBasedFrameDecoder(maxRequestSize,
 //                                    Constants.delimiterAsByteBufArray()));
-                            p.addLast("framer",new JsonObjectDecoder(maxRequestSize));                            
-                            p.addLast("decoder", new ByteArrayDecoder());
+//                            p.addLast("framer",new JsonObjectDecoder(maxRequestSize));                            
+//                            p.addLast("decoder", new ByteArrayDecoder());
+                            p.addLast("framer",new NettoFrameDecoder(maxRequestSize));                            
+                            p.addLast("decoder", new NettoMessageDecoder());                            
                             p.addLast("encoder", new StringEncoder());                                
-                            p.addLast("handler", new NettyServerJsonHandler(handler));
+                            p.addLast("handler", new NettyNettoMessageHandler(handler));
                         
                             // p.addLast("handler",new
                             // NettyServerJsonHandler(serviceBeans, filters));

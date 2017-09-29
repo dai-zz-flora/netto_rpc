@@ -36,7 +36,7 @@ public class NettyServerJsonHandler extends SimpleChannelInboundHandler<byte[]> 
         if(body.equals("")){
             return ;
         }
-        this.channelHandler.received(ctx, body);
+//        this.channelHandler.received(ctx, body);
    
         return;
         

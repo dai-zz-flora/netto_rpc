@@ -10,5 +10,8 @@ public interface NettoServiceChannelHandler {
      * @param channel channel.
      * @param message message.
      */
-    void received(ChannelHandlerContext ctx, String message) throws Exception;
+    void received(ChannelHandlerContext ctx, NettoMessage message) throws Exception;
+    
+    
+    void caught(ChannelHandlerContext ctx,Throwable cause);
 }

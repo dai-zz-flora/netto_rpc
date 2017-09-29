@@ -6,9 +6,22 @@ import java.util.List;
 public class ServiceRequest {
 	private String serviceName;
 	private String methodName;
-	private List<String> args = new ArrayList<String>();
+	private int argsLength = 0;
+	
+	public int getArgsLength() {
+        return argsLength;
+    }
 
-	public String getServiceName() {
+    private List<Object> args;
+
+	public void setArgs(List<Object> args) {
+        this.args = args;
+        if(args!=null){
+            argsLength = args.size();
+        }
+    }
+
+    public String getServiceName() {
 		return serviceName;
 	}
 
@@ -24,7 +37,7 @@ public class ServiceRequest {
 		this.methodName = methodName;
 	}
 
-	public List<String> getArgs() {
+	public List<Object> getArgs() {
 		return args;
 	}
 	

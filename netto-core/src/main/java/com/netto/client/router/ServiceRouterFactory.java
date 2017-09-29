@@ -26,6 +26,18 @@ public class ServiceRouterFactory implements FactoryBean<ServiceRouter>,Initiali
 	private List<InvokeMethodFilter> filters;
 	private List<String> servers;
 	
+	private boolean needSignature = false;
+	
+
+    public boolean doNeedSignature() {
+        return needSignature;
+    }
+
+    public void setNeedSignature(boolean needSignature) {
+        this.needSignature = needSignature;
+    }
+
+
 
     private String serviceApp;
     private String serviceGroup;
@@ -68,7 +80,7 @@ public class ServiceRouterFactory implements FactoryBean<ServiceRouter>,Initiali
 		if (serverGroup.getRegistry() != null && serverGroup.getRegistry().startsWith("http")) {
 
 			provider = new NginxServiceProvider(serverGroup.getRegistry(), serverGroup.getServiceApp(),
-					serverGroup.getServiceGroup());
+					serverGroup.getServiceGroup(),needSignature);
 
 		} else {
 			if (this.poolConfig == null) {
@@ -78,7 +90,7 @@ public class ServiceRouterFactory implements FactoryBean<ServiceRouter>,Initiali
 			}
 			TcpConnectPool pool = new TcpConnectPool(serverGroup.getServers(), this.poolConfig);
 			provider = new LocalServiceProvider(serverGroup.getRegistry(), serverGroup.getServiceApp(),
-					serverGroup.getServiceGroup(), pool);
+					serverGroup.getServiceGroup(), pool,needSignature);
 
 		}
 		providers.add(provider);

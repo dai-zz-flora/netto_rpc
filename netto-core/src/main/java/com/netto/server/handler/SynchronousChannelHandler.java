@@ -17,7 +17,7 @@ public class SynchronousChannelHandler extends AbstractServiceChannelHandler imp
     }    
     
     @Override
-    public void received(ChannelHandlerContext ctx, String message) throws Exception {
+    public void received(ChannelHandlerContext ctx, NettoMessage message) throws Exception {
         this.handle(ctx, message);        
     }
 

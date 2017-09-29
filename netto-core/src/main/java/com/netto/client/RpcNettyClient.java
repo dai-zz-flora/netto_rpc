@@ -1,6 +1,7 @@
 package com.netto.client;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -19,7 +20,7 @@ public class RpcNettyClient extends AbstactRpcClient {
 	private static Gson gson = new Gson();
 
 	public RpcNettyClient(ServiceProvider provider, List<InvokeMethodFilter> filters, String serviceName, int timeout) {
-		super(provider, filters, serviceName, timeout);
+		super(provider, filters, serviceName, timeout,false);
 		this.pool = (NettyConnectPool) provider.getPool("tcp");
 		this.pool.setTimeout(timeout);
 	}
@@ -29,15 +30,18 @@ public class RpcNettyClient extends AbstactRpcClient {
 		ServiceRequest req = new ServiceRequest();
 		req.setMethodName(method.getName());
 		req.setServiceName(this.getServiceName());
-		if (args != null) {
-			for (Object arg : args) {
-				if (arg != null) {
-					req.getArgs().add(gson.toJson(arg));
-				} else {
-					req.getArgs().add(null);
-				}
-			}
-		}
+		if(args!=null)
+		    req.setArgs(Arrays.asList(args));
+		
+//		if (args != null) {
+//			for (Object arg : args) {
+//				if (arg != null) {
+//					req.getArgs().add(gson.toJson(arg));
+//				} else {
+//					req.getArgs().add(null);
+//				}
+//			}
+//		}
 		SyncChannel channel = null;
 		try {
 			channel = this.pool.getResource();
@@ -45,9 +49,9 @@ public class RpcNettyClient extends AbstactRpcClient {
 			String body = channel.readLine();
 			ServiceResponse res = gson.fromJson(body, ServiceResponse.class);
 			if (res.getSuccess()) {
-				return gson.fromJson(res.getBody(), method.getGenericReturnType());
+				return res.getRetObject();
 			} else {
-				throw new Exception(res.getBody());
+				throw new Exception(String.valueOf(res.getRetObject()));
 			}
 
 		} catch (Exception e) {

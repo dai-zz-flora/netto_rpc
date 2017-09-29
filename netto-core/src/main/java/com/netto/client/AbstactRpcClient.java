@@ -1,5 +1,6 @@
 package com.netto.client;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -11,21 +12,25 @@ import com.netto.client.provider.AbstractServiceProvider;
 import com.netto.client.provider.ServiceProvider;
 import com.netto.context.Invocation;
 import com.netto.filter.InvokeMethodFilter;
+import com.netto.util.SignatureVerifier;
 
 public abstract class AbstactRpcClient implements InvocationHandler {
 	protected static Logger logger = Logger.getLogger(AbstactRpcClient.class);
 	private final String serviceName;
 	private int timeout = 10 * 1000;
-	protected static Gson gson = new Gson();
+
 	private List<InvokeMethodFilter> filters;
 	private AbstractServiceProvider provider;
+	
+	protected boolean doSignature = false;
 
 	public AbstactRpcClient(ServiceProvider provider, List<InvokeMethodFilter> filters, String serviceName,
-			int timeout) {
+			int timeout,boolean doSignature) {
 		this.provider = (AbstractServiceProvider) provider;
 		this.serviceName = serviceName;
 		this.timeout = timeout;
 		this.filters = filters;
+		this.doSignature = true;
 	}
 
 	protected AbstractServiceProvider getProvider() {
@@ -65,6 +70,10 @@ public abstract class AbstactRpcClient implements InvocationHandler {
 		for (InvokeMethodFilter filter : filters) {
 			filter.invokeException(invocation, t);
 		}
+	}
+	
+	protected String createSignature(String data) throws UnsupportedEncodingException{
+	    return SignatureVerifier.createSignature(data);
 	}
 
 	protected abstract Object invokeMethod(Method method, Object[] args) throws Throwable;

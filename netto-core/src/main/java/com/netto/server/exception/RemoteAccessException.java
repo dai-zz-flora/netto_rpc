@@ -1,4 +1,4 @@
-package com.netto.server.handler;
+package com.netto.server.exception;
 
 public class RemoteAccessException extends RuntimeException  {
     
