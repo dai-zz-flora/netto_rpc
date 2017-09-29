@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
+
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -30,7 +30,6 @@ import com.netto.server.handler.ServiceRequestJacksonDeserializer;
 
 public class NettoServer {
 
-    @Test
     public void testJackson() throws JsonParseException, JsonMappingException, IOException{
         ObjectMapper om = new ObjectMapper();
         om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
