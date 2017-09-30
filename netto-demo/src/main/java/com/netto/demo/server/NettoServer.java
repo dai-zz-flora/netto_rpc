@@ -30,57 +30,7 @@ import com.netto.server.handler.ServiceRequestJacksonDeserializer;
 
 public class NettoServer {
 
-    public void testJackson() throws JsonParseException, JsonMappingException, IOException{
-        ObjectMapper om = new ObjectMapper();
-        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        om.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        om.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-        
-        om.setSerializationInclusion(Include.NON_NULL);
-        om.setSerializationInclusion(Include.NON_DEFAULT);
-        
-        SimpleModule simpleModule  = new SimpleModule();
-        ServiceRequestJacksonDeserializer deserializer = new ServiceRequestJacksonDeserializer(ServiceRequest.class,om);
-        deserializer.registerMethodParameterTypes("helloService",HelloService.class);
-        simpleModule.addDeserializer(ServiceRequest.class,deserializer);
-        
-//        simpleModule.setDeserializerModifier(new BeanDeserializerModifier() {
-//            @Override
-//            public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription beanDesc, JsonDeserializer<?> deserializer) {
-//                return new DisallowNullDeserializer(beanDesc.getBeanClass(), deserializer);
-//            }
-//        });
-        
-        om.registerModule(simpleModule);
-        
-        User user = new User();
-        
-        String k = om.writeValueAsString(user);
-        
-        ServiceRequest r1 = new ServiceRequest();
-        r1.setMethodName("updateUsers");
-        r1.setServiceName("helloService");
-
-        
-        User u = new User();
-        u.setName("test1");
-        u.setAge(10);
-        List<Book> books = new ArrayList<Book>();
-        Book book = new Book();
-        book.setName("人类简史");
-        books.add(book);
-        u.setBooks(books);
-        List<User> usrs = Arrays.asList(u);
-        
-        r1.setArgs(Arrays.asList(usrs));
-        
-            
-        String json = om.writeValueAsString(r1);
-        
-        ServiceRequest request = om.readValue(json, ServiceRequest.class);
-        
-        System.out.println(request);
-    }
+   
     
     
 	public static void main(String[] args) throws Exception {

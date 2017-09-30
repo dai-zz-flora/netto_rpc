@@ -41,15 +41,7 @@ public class RpcHttpClient extends AbstactRpcClient {
         if (args != null)
             req.setArgs(Arrays.asList(args));
 
-        // if (args != null) {
-        // for (Object arg : args) {
-        // if (arg != null) {
-        // req.getArgs().add(gson.toJson(arg));
-        // } else {
-        // req.getArgs().add(null);
-        // }
-        // }
-        // }
+
         RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(this.getTimeout())
                 .setConnectionRequestTimeout(this.getTimeout()).setSocketTimeout(this.getTimeout()).build();
 
@@ -87,7 +79,7 @@ public class RpcHttpClient extends AbstactRpcClient {
                 if (res.getSuccess()) {
                     return res.getRetObject();
                 } else {
-                    throw new Exception(String.valueOf(res.getRetObject()));
+                    throw new Exception(String.valueOf(res.getErrorMessage()));
                 }
             } else {
                 throw new Exception(body);

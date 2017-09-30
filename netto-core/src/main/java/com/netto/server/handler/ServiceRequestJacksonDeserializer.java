@@ -56,9 +56,14 @@ public class ServiceRequestJacksonDeserializer extends StdDeserializer<ServiceRe
 
     public boolean registerMethodParameterTypes(String service, Class<?> clazz) {
 
-        Method[] methods = clazz.getDeclaredMethods();
+        Method[] methods =   clazz.getMethods();
+  
         for (Method method : methods) {
-
+            Class<?> declaredClazz = method.getDeclaringClass();
+            if(declaredClazz == Object.class){
+                continue;
+            }
+            
             Type[] parameterTypes = method.getGenericParameterTypes();
             String key = service + "/" + method.getName() + "/" + parameterTypes.length;
             this.serviceMethodParameterTypesCache.put(key, new ServiceMethodDesc(key, parameterTypes));
@@ -84,66 +89,6 @@ public class ServiceRequestJacksonDeserializer extends StdDeserializer<ServiceRe
         return true;
     }
 
-    // public void setCurrentContext(String serviceMethod){
-    // if(this.serviceMethodParameterTypesCache.containsKey(serviceMethod)){
-    // _localContext.set(this.serviceMethodParameterTypesCache.get(serviceMethod));
-    // }
-    // else{
-    // throw new JsonParseException("missing service method
-    // description:"+serviceMethod);
-    // }
-    // }
-    //
-    //
-    // public void clearCurrentContext(String serviceMethod){
-    // _localContext.remove();
-    // }
-
- 
-//    public ServiceRequest deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-//            throws JsonParseException {
-//        ServiceRequest request = new ServiceRequest();
-//        if (json.isJsonObject()) {
-//            JsonObject o = json.getAsJsonObject();
-//            String methodName = o.get("methodName").getAsString();
-//            String serviceName = o.get("serviceName").getAsString();
-//
-//            request.setMethodName(methodName);
-//            request.setServiceName(serviceName);
-//            String key = serviceName + "/" + methodName;
-//
-//            JsonElement args = o.get("args");
-//            if (args == null || args.isJsonNull()) {
-//                logger.warn("args is null:"+key);
-//            } else if (args.isJsonArray()) {
-//                JsonArray argsArray = args.getAsJsonArray();
-//                String methodKey = key+"/"+argsArray.size();
-//                        
-//                if (this.serviceMethodParameterTypesCache.containsKey(methodKey)) {
-//                    Type[] types = this.serviceMethodParameterTypesCache.get(methodKey).types;
-//                    if (types.length != argsArray.size()) {
-//                        throw new JsonParseException("method parameters mismatch:" + methodKey);
-//                    } else if (types.length != 0) {
-//                        List<Object> argsO = new ArrayList(types.length);
-//                        for (int i = 0; i < types.length; i++) {
-//                            Object arg = context.deserialize(argsArray.get(i), types[i]);
-//                            argsO.add(arg);
-//                        }
-//
-//                        request.setArgs(argsO);
-//                    }
-//                } else {
-//                    throw new JsonParseException("missing method parameters description:" + key);
-//                }
-//            } else {
-//                throw new JsonParseException("can't deserialize  ServiceRequest args:" + key);
-//            }
-//        } else {
-//            throw new JsonParseException("can't deserialize as ServiceRequest");
-//        }
-//
-//        return request;
-//    }
 
     @Override
     public ServiceRequest deserialize(JsonParser jp, DeserializationContext ctxt)
@@ -222,7 +167,7 @@ public class ServiceRequestJacksonDeserializer extends StdDeserializer<ServiceRe
                         return args;
                 default:
                     if(currentIndex<length){
-                        args.add(ctxt.readValue(jp, mapper.getTypeFactory().constructType(types[0])));
+                        args.add(ctxt.readValue(jp, mapper.getTypeFactory().constructType(types[currentIndex])));
                         currentIndex++;
                     }
             }

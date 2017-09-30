@@ -16,7 +16,7 @@
 	</settings>
 	<mappers>
 		<mapper resource="mapper/mysql/scheduleTaskMapper.xml" />
-		<mapper resource="mapper/mybatis-env.xml" />
+		<!-- <mapper resource="mapper/mybatis-env.xml" />
 		<mapper resource="mapper/mybatis-envDetail.xml" />
 		<mapper resource="mapper/mybatis-host.xml" />
 		<mapper resource="mapper/mybatis-app.xml" />
@@ -32,6 +32,6 @@
 		<mapper resource="mapper/mybatis-jobDetail.xml" />	
 		<mapper resource="mapper/mybatis-jobLog.xml" />	
 		<mapper resource="mapper/mybatis-jobType.xml" />
-		<mapper resource="mapper/mybatis-jobRecord.xml" />		
+		<mapper resource="mapper/mybatis-jobRecord.xml" />	 -->	
 	</mappers>
 </configuration>

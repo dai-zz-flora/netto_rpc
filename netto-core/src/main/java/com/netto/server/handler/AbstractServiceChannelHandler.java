@@ -49,7 +49,7 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
     public void caught(ChannelHandlerContext ctx, Throwable cause) {
         try{
             ServiceResponse<String> resObj = new  ServiceResponse<String>();
-            resObj.setRetObject(cause.getMessage());
+            resObj.setErrorMessage(cause.getMessage());
             StringWriter writer = new StringWriter();
             this.objectMapper.writeValue(writer, resObj);
             writer.write(Constants.PROTOCOL_REQUEST_DELIMITER);
@@ -174,16 +174,16 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
                     } catch (Throwable t) {
 
                         logger.error(t.getMessage(), t);
-                        resObj.setRetObject(t.getMessage());
+                        resObj.setErrorMessage(t.getMessage());
                     }
                     this.sendResponse(ctx, resObj);
 
                 } else {
-                    resObj.setRetObject("service " + reqObj.getServiceName() + " is not exsist!");
+                    resObj.setErrorMessage("service " + reqObj.getServiceName() + " is not exsist!");
                     this.sendResponse(ctx, resObj);
                 }
             } else {
-                resObj.setRetObject("service  is not verified!");
+                resObj.setErrorMessage("service  is not verified!");
                 this.sendResponse(ctx, resObj);
             }
             
@@ -194,7 +194,7 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
         }        
         catch (Throwable t) {
             logger.error("error when process request " + message, t);
-            resObj.setRetObject("error when process request " + message);
+            resObj.setErrorMessage("error when process request " + message);
             this.sendResponse(ctx, resObj);
         }
 

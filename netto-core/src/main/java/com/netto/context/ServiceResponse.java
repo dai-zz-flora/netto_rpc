@@ -1,13 +1,14 @@
 package com.netto.context;
 
 public class ServiceResponse<T> {
-	private int invokeId;
-	private Boolean success = false;
 
-	
-	private T retObject;
+    private String errorMessage;
 
-	public T getRetObject() {
+    private Boolean success = false;
+
+    private T retObject;
+
+    public T getRetObject() {
         return retObject;
     }
 
@@ -15,23 +16,20 @@ public class ServiceResponse<T> {
         this.retObject = retObject;
     }
 
-    public int getInvokeId() {
-		return invokeId;
-	}
+    public Boolean getSuccess() {
+        return success;
+    }
 
-	public void setInvokeId(int invokeId) {
-		this.invokeId = invokeId;
-	}
+    public void setSuccess(Boolean success) {
+        this.success = success;
+    }
 
-	public Boolean getSuccess() {
-		return success;
-	}
+    public String getErrorMessage() {
+        return errorMessage;
+    }
 
-	public void setSuccess(Boolean success) {
-		this.success = success;
-	}
-
-
-
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
 
 }

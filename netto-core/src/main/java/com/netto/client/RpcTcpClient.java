@@ -86,7 +86,7 @@ public class RpcTcpClient extends AbstactRpcClient {
 			if (res.getSuccess()) {
 				return  res.getRetObject();//mapper.readValue(res.getBody(), mapper.getTypeFactory().constructType(method.getGenericReturnType()));
 			} else {
-				throw new Exception(String.valueOf(res.getRetObject()));
+				throw new Exception(String.valueOf(res.getErrorMessage()));
 			}
 
 		} catch (Exception e) {
