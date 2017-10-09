@@ -11,7 +11,8 @@ public class DemoServerLauncher {
 
     private static Logger logger = Logger.getLogger(DemoServerLauncher.class);
     
-    public static void main(String[] args) {
+    @SuppressWarnings("resource")
+	public static void main(String[] args) {
         try {
             new ClassPathXmlApplicationContext("spring/spring-main.xml");
             logger.info("BoneLauncher started successfully!");
