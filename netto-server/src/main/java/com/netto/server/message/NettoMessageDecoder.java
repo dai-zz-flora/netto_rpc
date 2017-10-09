@@ -21,18 +21,26 @@ public class NettoMessageDecoder  extends MessageToMessageDecoder<NettoFrame>{
     @Override
     protected void decode(ChannelHandlerContext ctx, NettoFrame msg, List<Object> out) throws Exception {
         ByteBuf headerContent = msg.getHeaderContent();
-        byte[] headerBytesBuf = new byte[msg.getHeaderContentSize()];
-        headerContent.getBytes(headerContent.readerIndex(), headerBytesBuf);
-        NettoMessage message = new NettoMessage();
         ByteBuf body = msg.getBody();
-        byte[] bodyBytesBuf = new byte[msg.getBodySize()];        
-        body.getBytes(body.readerIndex(), bodyBytesBuf);
-        
-        Map<String,String> headers = this.decoderHeader(new String(headerBytesBuf));
+        try{
 
-        message.setBody(bodyBytesBuf);
-        message.setHeaders(headers);
-        out.add(message);
+            byte[] headerBytesBuf = new byte[msg.getHeaderContentSize()];
+            headerContent.getBytes(headerContent.readerIndex(), headerBytesBuf);
+            NettoMessage message = new NettoMessage();
+    
+            byte[] bodyBytesBuf = new byte[msg.getBodySize()];        
+            body.getBytes(body.readerIndex(), bodyBytesBuf);
+            
+            Map<String,String> headers = this.decoderHeader(new String(headerBytesBuf));
+    
+            message.setBody(bodyBytesBuf);
+            message.setHeaders(headers);
+            out.add(message);
+        }
+        finally{
+            headerContent.release();
+            body.release();
+        }
         
         
     }
