@@ -29,7 +29,7 @@ public class NettyNettoMessageHandler extends SimpleChannelInboundHandler<NettoM
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		logger.error("channel error:" + cause.getMessage());
+		logger.error("channel error:" + cause.getMessage(),cause);
 		if (cause instanceof NettoDecoderException || cause instanceof TooLongFrameException) {
 			this.channelHandler.caught(ctx, cause);
 		} else if (cause instanceof IOException) {

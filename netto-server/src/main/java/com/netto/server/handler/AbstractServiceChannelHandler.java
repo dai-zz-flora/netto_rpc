@@ -168,17 +168,13 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
 				ServiceRequest reqObj = new ServiceRequest();
 				reqObj.setServiceName(message.getHeaders().get(Constants.SERVICE_HEADER));
 				reqObj.setMethodName(message.getHeaders().get(Constants.METHOD_HEADER));
-				// ServiceRequest reqObj = objectMapper.readValue(new
-				// String(message.getBody(), "utf-8"),
-				// ServiceRequest.class);
-				// Object[] args = objectMapper.readValue(new
-				// String(message.getBody(), "utf-8"), Object[].class);
+
 				Object[] args = this.argDeser.deserialize(message);
 				reqObj.setArgs(args);
 				if (serviceBeans.containsKey(reqObj.getServiceName())) {
 					NettoServiceBean nettoBean = serviceBeans.get(reqObj.getServiceName());
 					ServiceProxy proxy = new ServiceProxy(reqObj, nettoBean, filters);
-
+					long start = System.currentTimeMillis();
 					try {
 						Object ret = proxy.callService();
 						// resObj.setBody(objectMapper.writeValueAsString(ret));
@@ -191,6 +187,9 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
 						resObj.setErrorMessage(t.getMessage());
 					}
 					this.sendResponse(ctx, resObj, nettoBean.getServiceBean().getTimeout());
+					long end = System.currentTimeMillis();
+					logger.debug(reqObj.getServiceName()+"/"+reqObj.getMethodName()+" cost "+(end-start)+" ms");
+					
 
 				} else {
 					resObj.setErrorMessage("service " + reqObj.getServiceName() + " is not exsist!");
@@ -207,7 +206,7 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
 			logger.error("io error when reply request " + message, ne);
 		} catch (Throwable t) {
 			logger.error("error when process request " + message, t);
-			resObj.setErrorMessage("error when process request " + message);
+			resObj.setErrorMessage("error when process request ");
 			this.sendResponse(ctx, resObj, Constants.DEFAULT_TIMEOUT);
 		}
 
