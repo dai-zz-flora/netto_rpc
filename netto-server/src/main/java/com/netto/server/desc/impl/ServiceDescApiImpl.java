@@ -4,22 +4,20 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.netto.core.util.DesUtil;
 import com.netto.server.bean.NettoServiceBean;
 import com.netto.service.desc.ClassDesc;
 import com.netto.service.desc.FieldDesc;
 import com.netto.service.desc.MethodDesc;
+import com.netto.service.desc.ServerDesc;
+import com.netto.service.desc.ServiceDesc;
 import com.netto.service.desc.ServiceDescApi;
 
 public class ServiceDescApiImpl implements ServiceDescApi {
@@ -33,18 +31,15 @@ public class ServiceDescApiImpl implements ServiceDescApi {
 		this.serviceBeans = serviceBeans;
 	}
 
-	public String getServiceApp() {
-		return this.serviceApp;
+	@Override
+	public ServerDesc getServerDesc() {
+		ServerDesc desc = new ServerDesc();
+		desc.setServiceApp(this.serviceApp);
+		desc.setServiceGroup(this.serviceGroup);
+		return desc;
 	}
 
-	public String getServiceGroup() {
-		return this.serviceGroup;
-	}
-
-	public List<MethodDesc> findServiceMethods(String token, String serviceName) {
-		if (!this.checkToken(token)) {
-			throw new RuntimeException("token is error！ ");
-		}
+	public List<MethodDesc> findServiceMethods(String serviceName) {
 		NettoServiceBean serviceObj = this.serviceBeans.get(serviceName);
 		if (serviceObj == null)
 			return null;
@@ -75,11 +70,20 @@ public class ServiceDescApiImpl implements ServiceDescApi {
 		return methodDescs;
 	}
 
-	public Set<String> findServices(String token) {
-		if (!this.checkToken(token)) {
-			throw new RuntimeException("token is error！ ");
+	public Set<ServiceDesc> findServices() {
+		Set<ServiceDesc> services = new HashSet<ServiceDesc>();
+		for (String key : this.serviceBeans.keySet()) {
+			ServiceDesc desc = new ServiceDesc();
+			desc.setServiceName(key);
+			desc.setServiceApp(this.serviceApp);
+			desc.setTimeout(this.serviceBeans.get(key).getServiceBean().getTimeout());
+			Class<?>[] interfaces = this.serviceBeans.get(key).getObjectType().getInterfaces();
+			if (interfaces != null && interfaces.length > 0) {
+				desc.setInterfaceClazz(interfaces[0].getName());
+			}
+			services.add(desc);
 		}
-		return this.serviceBeans.keySet();
+		return services;
 	}
 
 	private void dependons(MethodDesc methodDesc, Type type) {
@@ -116,12 +120,12 @@ public class ServiceDescApiImpl implements ServiceDescApi {
 		}
 	}
 
-	private boolean checkToken(String token) {
-		DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-		String content = format.format(new Date());
-		String temp = DesUtil.encrypt(content.getBytes(), content);
-		return temp.equals(token);
-	}
+//	private boolean checkToken(String token) {
+//		DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+//		String content = format.format(new Date());
+//		String temp = DesUtil.encrypt(content.getBytes(), content);
+//		return temp.equals(token);
+//	}
 
 	@Override
 	public int queryServiceTimeout(String serviceName) {
@@ -137,10 +141,7 @@ public class ServiceDescApiImpl implements ServiceDescApi {
 	}
 
 	@Override
-	public Set<String> findServicesByInterface(String token, String interfaceClazzStr) {
-		if (!this.checkToken(token)) {
-			throw new RuntimeException("token is error！ ");
-		}
+	public Set<String> findServicesByInterface(String interfaceClazzStr) {
 		Set<String> services = new HashSet<String>();
 		Class<?> interfaceClazz;
 		try {

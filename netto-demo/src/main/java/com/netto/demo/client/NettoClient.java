@@ -18,6 +18,8 @@ import com.netto.demo.Book;
 import com.netto.demo.HelloService;
 import com.netto.demo.User;
 import com.netto.service.desc.MethodDesc;
+import com.netto.service.desc.ServerDesc;
+import com.netto.service.desc.ServiceDesc;
 import com.netto.service.desc.ServiceDescApi;
 
 public class NettoClient {
@@ -164,17 +166,21 @@ public class NettoClient {
 		refer.setProtocol("tcp");
 
 		ServiceDescApi descObj = (ServiceDescApi) refer.getObject();
-		Set<String> services = descObj.findServices(getDescToken());
-		for (String service : services) {
-			System.out.println(service);
+
+		ServerDesc serverDesc = descObj.getServerDesc();
+		System.out.println(serverDesc);
+
+		Set<ServiceDesc> descList = descObj.findServices();
+		for (ServiceDesc desc : descList) {
+			System.out.println(desc);
 		}
-		List<MethodDesc> methodDecss = descObj.findServiceMethods(getDescToken(), "helloService");
+		List<MethodDesc> methodDecss = descObj.findServiceMethods("helloService");
 		for (MethodDesc desc : methodDecss) {
 			System.out.println(desc);
 		}
 
 		System.out.println("findServicesByInterface " + HelloService.class.getName());
-		services = descObj.findServicesByInterface(getDescToken(), HelloService.class.getName());
+		Set<String> services = descObj.findServicesByInterface(HelloService.class.getName());
 		for (String service : services) {
 			System.out.println(service);
 		}
@@ -182,7 +188,7 @@ public class NettoClient {
 		System.out.println("service desc api end------------");
 	}
 
-	private static String getDescToken() {
+	public static String getDescToken() {
 		DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		String content = format.format(new Date());
 		return DesUtil.encrypt(content.getBytes(), content);
