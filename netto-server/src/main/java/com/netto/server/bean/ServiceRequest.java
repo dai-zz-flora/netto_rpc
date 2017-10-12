@@ -4,8 +4,17 @@ public class ServiceRequest {
 	private String serviceName;
 	private String methodName;
 	private Object[] args;
+	private long requestSeqence = 0;
 
-	public void setArgs(Object[] args) {
+	public long getRequestSeqence() {
+        return requestSeqence;
+    }
+
+    public void setRequestSeqence(long requestSeqence) {
+        this.requestSeqence = requestSeqence;
+    }
+
+    public void setArgs(Object[] args) {
 		this.args = args;
 	}
 

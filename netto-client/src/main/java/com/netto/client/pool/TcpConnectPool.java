@@ -24,9 +24,9 @@ public class TcpConnectPool implements ConnectPool<Socket> {
 		this.servers = servers;
 		if (config == null) {
 			config = new GenericObjectPoolConfig();
-			config.setMaxTotal(200);
-			config.setMaxIdle(50);
-			config.setMinIdle(10);
+			config.setMaxTotal(1);
+			config.setMaxIdle(1);
+			config.setMinIdle(1);
 			// 从池中取连接的最大等待时间，单位ms.
 			config.setMaxWaitMillis(1000);
 			// 指明连接是否被空闲连接回收器(如果有)进行检验.如果检测失败,则连接将被从池中去除.

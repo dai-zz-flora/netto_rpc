@@ -74,9 +74,9 @@ public class ServiceAPIClient {
 			String requestBody = mapper.writeValueAsString(args);
 			byte[] byteBody = requestBody.getBytes("UTF-8");
 			StringWriter headerWriter = new StringWriter(128);
-			headerWriter.append(Constants.SERVICE_HEADER).append(":").append("$serviceDesc").append("\r\n");
-			headerWriter.append(Constants.METHOD_HEADER).append(":").append("pingService").append("\r\n");
-			headerWriter.append(Constants.ARGSLEN_HEADER).append(":").append("1");
+			headerWriter.append(NettoFrame.SERVICE_HEADER).append(":").append("$serviceDesc").append("\r\n");
+			headerWriter.append(NettoFrame.METHOD_HEADER).append(":").append("pingService").append("\r\n");
+			headerWriter.append(NettoFrame.ARGSLEN_HEADER).append(":").append("1");
 			byte[] headerContentBytes = headerWriter.toString().getBytes("UTF-8");
 
 			String header = String.format("%s:%d/%d/%d", NettoFrame.NETTO_HEADER_START, 2, headerContentBytes.length,

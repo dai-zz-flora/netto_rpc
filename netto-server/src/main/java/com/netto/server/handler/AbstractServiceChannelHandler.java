@@ -3,6 +3,7 @@ package com.netto.server.handler;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -21,6 +22,7 @@ import com.netto.core.exception.RemoteAccessException;
 import com.netto.core.filter.InvokeMethodFilter;
 import com.netto.core.message.NettoFrame;
 import com.netto.core.util.Constants;
+
 import com.netto.core.util.RandomStrGenerator;
 import com.netto.core.util.SignatureVerifier;
 import com.netto.server.bean.NettoServiceBean;
@@ -65,11 +67,8 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
 		try {
 			ServiceResponse<String> resObj = new ServiceResponse<String>();
 			resObj.setErrorMessage(cause.getMessage());
-			StringWriter writer = new StringWriter();
-			this.objectMapper.writeValue(writer, resObj);
-			writer.write(Constants.PROTOCOL_REQUEST_DELIMITER);
+			this.sendResponse(ctx, resObj, -1);
 
-			ctx.writeAndFlush(writer.toString());
 		} catch (Throwable t) {
 			logger.error("caught error failed ", t);
 		}
@@ -82,16 +81,8 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
 		objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
 		objectMapper.setSerializationInclusion(Include.NON_NULL);
-		// objectMapper.setSerializationInclusion(Include.NON_DEFAULT);
 
-		// ServiceRequestJacksonDeserializer deserializer = new
-		// ServiceRequestJacksonDeserializer(ServiceRequest.class,
-		// objectMapper);
 		this.argDeser = new ArgsDeserializer(this.objectMapper);
-		// SimpleModule simpleModule = new SimpleModule();
-		//
-		// simpleModule.addDeserializer(Object[].class, this.argDeser);
-		// objectMapper.registerModule(simpleModule);
 
 		for (String key : serviceBeans.keySet()) {
 			NettoServiceBean bean = serviceBeans.get(key);
@@ -103,25 +94,46 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
 
 	public void sendResponse(ChannelHandlerContext ctx, ServiceResponse<?> resObj, int timeout)
 			throws JsonGenerationException, JsonMappingException, IOException {
-		StringWriter writer = new StringWriter();
-		this.objectMapper.writeValue(writer, resObj);
-		writer.write(Constants.PROTOCOL_REQUEST_DELIMITER);
 
-		ChannelFuture future = ctx.writeAndFlush(writer.toString());
+	    StringWriter headerContent = new StringWriter();
+	    if(!resObj.getSuccess()){
+	        headerContent.write(NettoFrame.ERROR_HEADER);
+	        headerContent.write(":");
+	        headerContent.write(resObj.getErrorMessage());
+	        headerContent.write(NettoFrame.HEADER_DELIMITER);
+	    }
+	    byte[] headerContentBytes = headerContent.toString().getBytes("utf-8");
+	    
+        byte[] headerBytes = new byte[NettoFrame.HEADER_LENGTH];
 
-		try {
-			boolean success = future.await(timeout, TimeUnit.MILLISECONDS);
-
-			if (future.cause() != null) {
-				throw new NettoIOException("error response error ", future.cause());
-			} else if (!success) {
-				throw new NettoIOException("response error timeout");
-			}
-		} catch (InterruptedException e) {
-			throw new RemoteAccessException("await Interrupted", e);
-		} finally {
-
-		}
+        Arrays.fill(headerBytes, (byte) ' ');
+        
+        byte[] body = this.objectMapper.writeValueAsBytes(resObj.getRetObject());
+              
+        String header = String.format("%s%s/%d/%d", NettoFrame.NETTO_HEADER_START, resObj.getSuccess()?NettoFrame.NETTO_SUCESSS:NettoFrame.NETTO_FAILED, headerContentBytes.length,
+                body.length);        
+        
+        System.arraycopy(header.getBytes("utf-8"), 0, headerBytes, 0, header.length());
+        
+        ctx.write(headerBytes);
+        ctx.write(headerContentBytes);
+        ChannelFuture future =  ctx.writeAndFlush(body);
+        
+        if(timeout!=-1){
+    		try {
+    			boolean success = future.await(timeout, TimeUnit.MILLISECONDS);
+    
+    			if (future.cause() != null) {
+    				throw new NettoIOException("error response error ", future.cause());
+    			} else if (!success) {
+    				throw new NettoIOException("response error timeout");
+    			}
+    		} catch (InterruptedException e) {
+    			throw new RemoteAccessException("await Interrupted", e);
+    		} finally {
+    
+    		}
+        }
 	}
 
 	private boolean verifySignature(NettoMessage message) throws Exception {
@@ -166,8 +178,8 @@ public abstract class AbstractServiceChannelHandler implements NettoServiceChann
 			boolean verified = this.verifySignature(message);
 			if (verified) {
 				ServiceRequest reqObj = new ServiceRequest();
-				reqObj.setServiceName(message.getHeaders().get(Constants.SERVICE_HEADER));
-				reqObj.setMethodName(message.getHeaders().get(Constants.METHOD_HEADER));
+				reqObj.setServiceName(message.getHeaders().get(NettoFrame.SERVICE_HEADER));
+				reqObj.setMethodName(message.getHeaders().get(NettoFrame.METHOD_HEADER));
 
 				Object[] args = this.argDeser.deserialize(message);
 				reqObj.setArgs(args);

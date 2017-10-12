@@ -58,9 +58,9 @@ public class RpcHttpClient extends AbstactRpcClient {
 			mapper.writeValue(writer, args);
 			String requestBody = writer.toString();
 			if (args != null) {
-				post.addHeader(Constants.ARGSLEN_HEADER, args.length + "");
+				post.addHeader(NettoFrame.ARGSLEN_HEADER, args.length + "");
 			} else {
-				post.addHeader(Constants.ARGSLEN_HEADER, "0");
+				post.addHeader(NettoFrame.ARGSLEN_HEADER, "0");
 			}
 			if (this.doSignature) {
 				String signature = this.createSignature(requestBody);
@@ -75,14 +75,10 @@ public class RpcHttpClient extends AbstactRpcClient {
 			String body = EntityUtils.toString(entity, "UTF-8");
 			if (response.getStatusLine().getStatusCode() == 200) {
 
-				ServiceResponse<?> res = mapper.readValue(body, mapper.getTypeFactory().constructParametricType(
-						ServiceResponse.class, mapper.getTypeFactory().constructType(method.getGenericReturnType())));
 
-				if (res.getSuccess()) {
-					return res.getRetObject();
-				} else {
-					throw new Exception(String.valueOf(res.getErrorMessage()));
-				}
+			    Object ret = mapper.readValue(body, mapper.getTypeFactory().constructType(method.getGenericReturnType()));
+			    return ret;
+
 			} else {
 				throw new Exception(body);
 			}

@@ -134,10 +134,16 @@ public class NettoClient {
 		System.out.println("local_tcp begin-----------");
 		HelloService helloProxy = (HelloService) refer.getObject();
 
-		List<User> users1 = helloProxy.queryUsers();
-		System.out.println("无参数的返回值为" + users1.size());
+		try{
+    		List<User> users1 = helloProxy.queryUsers();
+    		System.out.println("无参数的返回值为" + users1.size());
+		}
+		catch(Throwable t){
+		    t.printStackTrace();
+		}
 		// String res = helloProxy.sayHello("netto");
 		// System.out.println(res);
+		
 		Map<String, List<User>> users = new HashMap<String, List<User>>();
 		users.put("abc", new ArrayList<User>());
 		User u = new User();
@@ -149,6 +155,7 @@ public class NettoClient {
 		books.add(book);
 		u.setBooks(books);
 		users.get("abc").add(u);
+		
 		List<User> list = helloProxy.saveUsers(users);
 		// List<User> list = helloProxy.updateUsers(users.get("abc"));
 		for (User u1 : list) {

@@ -32,6 +32,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.bytes.ByteArrayEncoder;
 import io.netty.handler.codec.string.StringEncoder;
 
 public class NettyServer implements InitializingBean, DisposableBean, ApplicationContextAware {
@@ -191,7 +192,7 @@ public class NettyServer implements InitializingBean, DisposableBean, Applicatio
 						// p.addLast("decoder", new ByteArrayDecoder());
 						p.addLast("framer", new NettoFrameDecoder(maxRequestSize));
 						p.addLast("decoder", new NettoMessageDecoder());
-						p.addLast("encoder", new StringEncoder());
+						p.addLast("encoder", new ByteArrayEncoder());
 						p.addLast("handler", new NettyNettoMessageHandler(handler));
 
 						// p.addLast("handler",new

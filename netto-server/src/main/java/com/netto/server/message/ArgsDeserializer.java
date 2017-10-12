@@ -22,11 +22,18 @@ import com.fasterxml.jackson.databind.deser.UnresolvedForwardReference;
 import com.fasterxml.jackson.databind.deser.impl.ReadableObjectId;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.introspect.Annotated;
-import com.netto.core.util.Constants;
+import com.netto.core.message.NettoFrame;
+
 
 public class ArgsDeserializer extends StdDeserializer<Object[]> {
 	private Map<String, ServiceMethodDesc> serviceMethodParameterTypesCache = new ConcurrentHashMap<String, ServiceMethodDesc>();
 	private ObjectMapper mapper;
+	
+	private static int READY = 0 ;
+	private static int PROCESSING_ARGS = 1;
+	
+	
+	private static int END_ARGS = 3;
 
 	public ArgsDeserializer(ObjectMapper mapper) {
 		this(Object[].class, mapper);
@@ -59,10 +66,10 @@ public class ArgsDeserializer extends StdDeserializer<Object[]> {
 
 		Map<String, String> headers = (Map<String, String>) ((NettoDeserializationContext) ctxt).getNettoHeaders();
 		ctxt = ((NettoDeserializationContext) ctxt).getContext();
-		String methodKey = headers.get(Constants.SERVICE_HEADER) + "/" + headers.get(Constants.METHOD_HEADER) + "/";
+		String methodKey = headers.get(NettoFrame.SERVICE_HEADER) + "/" + headers.get(NettoFrame.METHOD_HEADER) + "/";
 
-		if (headers.containsKey(Constants.ARGSLEN_HEADER)) {
-			methodKey = methodKey + headers.get(Constants.ARGSLEN_HEADER);
+		if (headers.containsKey(NettoFrame.ARGSLEN_HEADER)) {
+			methodKey = methodKey + headers.get(NettoFrame.ARGSLEN_HEADER);
 		}
 		Type[] types = null;
 		if (this.serviceMethodParameterTypesCache.containsKey(methodKey)) {
@@ -77,18 +84,33 @@ public class ArgsDeserializer extends StdDeserializer<Object[]> {
 		Object[] args = new Object[length];
 
 		JsonToken currentToken = null;
+		int state = READY;
 		while ((currentToken = jp.nextValue()) != null) {
+
+		    
 			switch (currentToken) {
 			case START_ARRAY:
-				continue;
-			case END_ARRAY:
-				return args;
+			    if(state == READY){
+			        state = PROCESSING_ARGS;
+			        continue;
+			    }
+				
 			default:
-				if (currentIndex < length) {
-					args[currentIndex] = ctxt.readValue(jp, mapper.getTypeFactory().constructType(types[currentIndex]));
-					currentIndex++;
+			    if(state == PROCESSING_ARGS){
+    				if (currentIndex < length) {
+    					args[currentIndex] = ctxt.readValue(jp, mapper.getTypeFactory().constructType(types[currentIndex]));
+    					currentIndex++;
+    				}
+			    }
+
+				if(currentIndex == length){
+				    state = END_ARGS;
 				}
 			}
+			
+            if(state == END_ARGS){
+                break;
+            }			
 
 		}
 

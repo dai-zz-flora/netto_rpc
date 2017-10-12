@@ -48,7 +48,7 @@ public class NettoMessageDecoder  extends MessageToMessageDecoder<NettoFrame>{
     
     
     private Map<String,String> decoderHeader(String headerContent){
-        String[] headers = StringUtils.split(headerContent, "\r\n");
+        String[] headers = StringUtils.split(headerContent, NettoFrame.HEADER_DELIMITER);
         Map<String,String> headersMap = Arrays.asList(headers).stream().map(str->{
             String[] pair = str.split(":");
             if(pair.length<2){
