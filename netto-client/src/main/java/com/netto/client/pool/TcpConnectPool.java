@@ -10,18 +10,28 @@ import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netto.client.api.ServiceAPIClient;
-import com.netto.core.context.ServiceAddress;
+import com.netto.client.util.JsonMapperUtil;
+import com.netto.core.context.ServerAddressGroup;
+import com.netto.core.util.Constants;
+import com.netto.core.context.ServerAddress;
 
 public class TcpConnectPool implements ConnectPool<Socket> {
 	private static Logger logger = Logger.getLogger(TcpConnectPool.class);
-	private List<ServiceAddress> servers = new ArrayList<ServiceAddress>();
+	private ServerAddressGroup serverGroup;
 	private GenericObjectPool<Socket> pool;
 
-	public TcpConnectPool(List<ServiceAddress> servers, GenericObjectPoolConfig config) {
-		this.servers = servers;
+	public TcpConnectPool(ServerAddressGroup serverGroup, GenericObjectPoolConfig config) {
+		this.serverGroup = serverGroup;
 		if (config == null) {
 			config = new GenericObjectPoolConfig();
 			config.setMaxTotal(1);
@@ -40,10 +50,6 @@ public class TcpConnectPool implements ConnectPool<Socket> {
 
 		}
 		pool = new GenericObjectPool<Socket>(new ClientSocketPoolFactory(), config);
-	}
-
-	public List<ServiceAddress> getServers() {
-		return servers;
 	}
 
 	public Socket getResource() {
@@ -74,18 +80,20 @@ public class TcpConnectPool implements ConnectPool<Socket> {
 	}
 
 	private class ClientSocketPoolFactory implements PooledObjectFactory<Socket> {
-		public ClientSocketPoolFactory() {
+		private HttpConnectPool httpPool;
 
+		public ClientSocketPoolFactory() {
+			this.httpPool = new HttpConnectPool();
 		}
 
 		public PooledObject<Socket> makeObject() throws Exception {
 			// 简单策略随机取服务器，没有考虑权重
-			List<ServiceAddress> temps = new ArrayList<ServiceAddress>();
-			temps.addAll(servers);
+			List<ServerAddress> temps = new ArrayList<ServerAddress>();
+			temps.addAll(serverGroup.getServers());
 
 			for (int i = temps.size() - 1; i >= 0; i--) {
 				int index = new Random(System.currentTimeMillis()).nextInt(temps.size());
-				ServiceAddress server = temps.get(index);
+				ServerAddress server = temps.get(index);
 				try {
 					PooledObject<Socket> po = new DefaultPooledObject<Socket>(
 							new Socket(server.getIp(), server.getPort()));
@@ -99,6 +107,8 @@ public class TcpConnectPool implements ConnectPool<Socket> {
 							+ e.getMessage());
 				}
 			}
+			// 没有可用服务器时，请求一下registry更新服务器信息
+			this.updateServerGroup();
 			throw new Exception("No server available!");
 		}
 
@@ -141,6 +151,42 @@ public class TcpConnectPool implements ConnectPool<Socket> {
 				logger.error("ping service[" + socket.getInetAddress().getHostAddress() + ":" + socket.getPort()
 						+ "] failed! " + t.getMessage());
 				return false;
+			}
+		}
+
+		private synchronized void updateServerGroup() {
+			if (serverGroup.getRegistry() == null)
+				return;
+			if (!serverGroup.getRegistry().startsWith("http"))
+				return;
+			RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(Constants.DEFAULT_TIMEOUT)
+					.setConnectionRequestTimeout(Constants.DEFAULT_TIMEOUT).setSocketTimeout(Constants.DEFAULT_TIMEOUT)
+					.build();
+			HttpClient httpClient = this.httpPool.getResource();
+			try {
+				StringBuilder sb = new StringBuilder(50);
+				sb.append(serverGroup.getRegistry()).append(serverGroup.getRegistry().endsWith("/") ? "" : "/")
+						.append(serverGroup.getServerApp()).append("/servers");
+				HttpGet get = new HttpGet(sb.toString());
+				get.setConfig(requestConfig);
+				// 创建参数队列
+				HttpResponse response = httpClient.execute(get);
+				HttpEntity entity = response.getEntity();
+				String body = EntityUtils.toString(entity, "UTF-8");
+				ObjectMapper mapper = JsonMapperUtil.getJsonMapper();
+				List<ServerAddressGroup> servers = mapper.readValue(body,
+						mapper.getTypeFactory().constructParametricType(List.class,
+								mapper.getTypeFactory().constructType(ServerAddressGroup.class)));
+
+				if (servers != null && servers.size() > 0) {
+					serverGroup.getServers().clear();
+					serverGroup.getServers().addAll(servers.get(0).getServers());
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+				throw new RuntimeException(e);
+			} finally {
+				this.httpPool.release(httpClient);
 			}
 		}
 	}
