@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 public class ServerAddressGroup {
 	private List<ServerAddress> servers;
 	private String serverApp;
-	private String serverGroup;
+	private String serverGroup = "*";
 	private String registry;
 
 	public String getRegistry() {
@@ -37,8 +37,12 @@ public class ServerAddressGroup {
 	public List<ServerAddress> getServers() {
 		return servers;
 	}
+	
+    public void setServers(List<ServerAddress> servers) {
+        this.servers = servers;
+    }
 
-	public void setServers(String servers) {
+	public void setServersFromString(String servers) {
 		List<String> serverList = Arrays.asList(servers.split(";"));
 		List<ServerAddress> addresses = serverList.stream().map(server -> {
 			String[] s = server.split(":");

@@ -102,6 +102,7 @@ public class NginxServiceProvider extends AbstractServiceProvider {
 
 	private List<ServerAddressGroup> getServerGroups() {
 		HttpClient httpClient = this.httpPool.getResource();
+		List<ServerAddressGroup> serverGroups = null;
 		try {
 			StringBuilder sb = new StringBuilder(50);
 			sb.append(this.getRegistry()).append(this.getRegistry().endsWith("/") ? "" : "/")
@@ -112,13 +113,20 @@ public class NginxServiceProvider extends AbstractServiceProvider {
 			HttpEntity entity = response.getEntity();
 			String body = EntityUtils.toString(entity, "UTF-8");
 			ObjectMapper mapper = JsonMapperUtil.getJsonMapper();
-			return mapper.readValue(body, mapper.getTypeFactory().constructParametricType(List.class,
+			serverGroups =  mapper.readValue(body, mapper.getTypeFactory().constructParametricType(List.class,
 					mapper.getTypeFactory().constructType(ServerAddressGroup.class)));
+			
+			for(ServerAddressGroup serverGroup:serverGroups){
+			    serverGroup.setRegistry(this.getRegistry());
+			}
+
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			throw new RuntimeException(e);
 		} finally {
 			this.httpPool.release(httpClient);
 		}
+		
+		return serverGroups;
 	}
 }
