@@ -2,13 +2,43 @@ package com.netto.core.context;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ServerAddressGroup {
+import com.netto.core.util.Constants;
+import com.netto.service.desc.ServerDesc;
+
+public class ServerAddressGroup{
 	private List<ServerAddress> servers;
 	private String serverApp;
-	private String serverGroup = "*";
+	private String serverGroup = Constants.DEFAULT_SERVER_GROUP;
 	private String registry;
+	
+	
+	private boolean compareServers(List<ServerAddress> otherServers){
+	   if(this.servers.size()==otherServers.size()){
+    	   Map<String,ServerAddress> myServers = this.servers.stream().collect(Collectors.toConcurrentMap(i -> i.toString(), j -> j,(a,b)-> a));
+    	   
+//    	   Map<String,ServerAddress> theirServers = otherServers.stream().collect(Collectors.toMap (i -> i.toString(), j -> j));
+    	   
+    	   if(this.servers.size()!=otherServers.size()){
+    	       return false;
+    	   }
+    	   else{
+    	       for(ServerAddress serverAddress:otherServers){
+    	           if(!myServers.containsKey(serverAddress.toString())){
+    	               return false;
+    	           }
+    	       }
+    	       
+    	       return true;
+    	   }
+	   }
+	   else
+	       return false;
+	   
+	}
+	
 
 	public String getRegistry() {
 		return registry;
@@ -42,7 +72,16 @@ public class ServerAddressGroup {
         this.servers = servers;
     }
 
-	public void setServersFromString(String servers) {
+
+	public ServerDesc getServerDesc() {
+		ServerDesc serverDesc = new ServerDesc();
+		serverDesc.setRegistry(registry);
+		serverDesc.setServerApp(serverApp);
+		serverDesc.setServerGroup(serverGroup);
+		return serverDesc;
+	}
+
+    public void setServersFromString(String servers) {
 		List<String> serverList = Arrays.asList(servers.split(";"));
 		List<ServerAddress> addresses = serverList.stream().map(server -> {
 			String[] s = server.split(":");
@@ -61,4 +100,18 @@ public class ServerAddressGroup {
 		this.servers = addresses;
 
 	}
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof  ServerAddressGroup){
+            ServerAddressGroup another = (ServerAddressGroup)obj;
+            return serverApp.equals(another.getServerApp())&&serverGroup.equals(another.getServerGroup())&&this.compareServers(another.servers);
+        }
+        else{
+            return false;
+        }
+    }
+
+   
+    
 }

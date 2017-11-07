@@ -65,13 +65,23 @@ public class NettoFrameDecoder extends ByteToMessageDecoder {
                         int headerContentSize = Integer.parseInt(headerContentSizeAsString);
                         int bodySize = Integer.parseInt(bodySizeAsString);
                         if (in.readableBytes() >= bodySize + headerContentSize + NettoFrame.HEADER_LENGTH) {
-                            ByteBuf headerContent = in.retainedSlice(NettoFrame.HEADER_LENGTH, headerContentSize);
-                            ByteBuf body = in.retainedSlice(NettoFrame.HEADER_LENGTH + headerContentSize, bodySize);
+//                            ByteBuf headerContent = in.retainedSlice(NettoFrame.HEADER_LENGTH, headerContentSize);
+//                            ByteBuf body = in.retainedSlice(NettoFrame.HEADER_LENGTH + headerContentSize, bodySize);
                             NettoFrame nettoMessage = new NettoFrame();
+
+                            
+                            byte[] headerBytesBuf = new byte[headerContentSize];
+                            in.getBytes(NettoFrame.HEADER_LENGTH, headerBytesBuf);
+                            
+                            byte[] bodyBytesBuf = new byte[bodySize];        
+                            in.getBytes(NettoFrame.HEADER_LENGTH + headerContentSize, bodyBytesBuf);      
+                            
                             nettoMessage.setBodySize(bodySize);
-                            nettoMessage.setBody(body);
-                            nettoMessage.setHeaderContent(headerContent);
+                            nettoMessage.setBody(bodyBytesBuf);
+                            nettoMessage.setHeaderContent(headerBytesBuf);
                             nettoMessage.setHeaderContentSize(headerContentSize);
+                            
+                            
                             out.add(nettoMessage);
                             in.readerIndex(NettoFrame.HEADER_LENGTH + headerContentSize + bodySize);
                         }

@@ -1,6 +1,6 @@
 package com.netto.core.context;
 
-public class ServerAddress {
+public class ServerAddress implements Comparable<ServerAddress> {
 	private String ip;
 
 	public String getIp() {
@@ -29,4 +29,21 @@ public class ServerAddress {
 
 	private int port;
 	private int weight;
+
+    @Override
+    public int compareTo(ServerAddress o) {
+        int ret = ip.compareTo(ip);
+        if(ret==0){
+            return this.port-o.port;
+        }
+        else{
+            return ret;
+        }
+    }
+    
+    public String toString(){
+        return this.ip+":"+this.port;
+    }
+	
+
 }

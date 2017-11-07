@@ -1,6 +1,12 @@
 package com.netto.core.message;
 
-import io.netty.buffer.ByteBuf;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+
 
 public class NettoFrame {
     public static String NETTO_HEADER_START = "NETTO:";
@@ -15,14 +21,63 @@ public class NettoFrame {
 
     public static int HEADER_LENGTH = 64;
     public static String HEADER_DELIMITER = "\r\n";
+    public static String ENCODING = "UTF-8";
 
     private int bodySize = 0;
 
     private int headerContentSize = 0;
 
-    private ByteBuf headerContent;
+    private byte[] headerContent;
 
-    private ByteBuf body;
+    private byte[] body;
+    
+    private byte[] headerLine;
+    
+    private String serviceName;
+    private String methodName;
+    private int argsLen = -1;
+    private String signature;
+ 
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
+    public int getArgsLen() {
+        return argsLen;
+    }
+
+    public void setArgsLen(int argsLen) {
+        this.argsLen = argsLen;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public byte[] getHeaderLine() {
+        return headerLine;
+    }
+
+    public void setHeaderLine(byte[] headerLine) {
+        this.headerLine = headerLine;
+    }
 
     public int getBodySize() {
         return bodySize;
@@ -40,20 +95,39 @@ public class NettoFrame {
         this.headerContentSize = headerContentSize;
     }
 
-    public ByteBuf getHeaderContent() {
+    public byte[] getHeaderContent() {
         return headerContent;
     }
 
-    public void setHeaderContent(ByteBuf headerContent) {
+    public void setHeaderContent(byte[] headerContent) {
         this.headerContent = headerContent;
     }
 
-    public ByteBuf getBody() {
+    public byte[] getBody() {
         return body;
     }
 
-    public void setBody(ByteBuf body) {
+    public void setBody(byte[] body) {
         this.body = body;
+    }
+    
+    
+    public Map<String,String> decodeHeader() throws UnsupportedEncodingException{
+        String headerContent = new String(this.headerContent,ENCODING);
+        String[] headers = StringUtils.split(headerContent, NettoFrame.HEADER_DELIMITER);
+        Map<String,String> headersMap = Arrays.asList(headers).stream().map(str->{
+            String[] pair = str.split(":");
+            if(pair.length<2){
+                pair = new String[]{str,""};
+                return pair;
+            }            
+            else{
+                return pair;
+            }
+        }).collect(
+                Collectors.toMap(pair -> pair[0], pair -> pair[1]));
+        
+        return headersMap;
     }
 
 }

@@ -20,9 +20,10 @@ import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netto.client.api.ServiceAPIClient;
-import com.netto.client.util.JsonMapperUtil;
+
 import com.netto.core.context.ServerAddressGroup;
 import com.netto.core.util.Constants;
+import com.netto.core.util.JsonMapperUtil;
 import com.netto.core.context.ServerAddress;
 
 public class TcpConnectPool implements ConnectPool<Socket> {
@@ -55,6 +56,7 @@ public class TcpConnectPool implements ConnectPool<Socket> {
 
         }
         pool = new GenericObjectPool<Socket>(new ClientSocketPoolFactory(), config);
+
     }
 
     public Socket getResource() {

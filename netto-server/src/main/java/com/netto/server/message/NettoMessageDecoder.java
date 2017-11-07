@@ -19,49 +19,24 @@ public class NettoMessageDecoder  extends MessageToMessageDecoder<NettoFrame>{
     
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, NettoFrame msg, List<Object> out) throws Exception {
-        ByteBuf headerContent = msg.getHeaderContent();
-        ByteBuf body = msg.getBody();
+    protected void decode(ChannelHandlerContext ctx, NettoFrame frame, List<Object> out) throws Exception {
         try{
 
-            byte[] headerBytesBuf = new byte[msg.getHeaderContentSize()];
-            headerContent.getBytes(headerContent.readerIndex(), headerBytesBuf);
+            byte[] bodyBytesBuf = frame.getBody();
+
             NettoMessage message = new NettoMessage();
-    
-            byte[] bodyBytesBuf = new byte[msg.getBodySize()];        
-            body.getBytes(body.readerIndex(), bodyBytesBuf);
             
-            Map<String,String> headers = this.decoderHeader(new String(headerBytesBuf));
-    
+            Map<String,String> headers = frame.decodeHeader();    
             message.setBody(bodyBytesBuf);
             message.setHeaders(headers);
             out.add(message);
         }
         finally{
-            headerContent.release();
-            body.release();
+
         }
         
         
     }
-    
-    
-    
-    private Map<String,String> decoderHeader(String headerContent){
-        String[] headers = StringUtils.split(headerContent, NettoFrame.HEADER_DELIMITER);
-        Map<String,String> headersMap = Arrays.asList(headers).stream().map(str->{
-            String[] pair = str.split(":");
-            if(pair.length<2){
-                pair = new String[]{str,""};
-                return pair;
-            }            
-            else{
-                return pair;
-            }
-        }).collect(
-                Collectors.toMap(pair -> pair[0], pair -> pair[1]));
-        
-        return headersMap;
-    }
+           
 
 }

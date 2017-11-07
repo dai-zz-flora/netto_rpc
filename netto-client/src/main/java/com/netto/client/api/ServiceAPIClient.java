@@ -11,12 +11,12 @@ import java.util.Arrays;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netto.client.bean.ReferenceBean;
+import com.netto.client.bean.ReferenceBean3;
 import com.netto.client.provider.ServiceProvider;
-import com.netto.client.util.JsonMapperUtil;
 import com.netto.core.context.ServiceResponse;
 import com.netto.core.message.NettoFrame;
 import com.netto.core.util.Constants;
+import com.netto.core.util.JsonMapperUtil;
 import com.netto.service.desc.ServiceDescApi;
 
 /**
@@ -36,11 +36,11 @@ public class ServiceAPIClient {
 		this.timeout = timeout;
 	}
 
-	public ServiceAPIClient(ServiceProvider provider, ReferenceBean refer, int timeout) {
+	public ServiceAPIClient(ServiceProvider provider, ReferenceBean3 refer, int timeout) {
 		this.timeout = timeout;
-		ReferenceBean apiRefer = new ReferenceBean();
+		ReferenceBean3 apiRefer = new ReferenceBean3();
 		apiRefer.setInterfaceClazz(ServiceDescApi.class);
-		apiRefer.setProtocol(refer.getProtocol());
+		//apiRefer.setProtocol(refer.getProtocol());
 		apiRefer.setRouter(refer.getRouter());
 		apiRefer.setServiceName("$serviceDesc");
 		apiRefer.setTimeout(timeout);
