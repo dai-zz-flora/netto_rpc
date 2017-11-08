@@ -83,7 +83,16 @@ public class TcpSocketTransport implements Transport{
                     }
                     else{
                         byte[] body = new byte[bodySize];
-                        is.read(body);
+                        int len = 0;
+                        while(len<bodySize){
+                            int readLen = is.read(body, len, bodySize-len);
+                            if(readLen<0){
+                                break;
+                            }
+                            else{
+                                len = len + readLen;
+                            }
+                        }
 
                         responseFrame.setBody(body);
                         responseFrame.setBodySize(body.length);
