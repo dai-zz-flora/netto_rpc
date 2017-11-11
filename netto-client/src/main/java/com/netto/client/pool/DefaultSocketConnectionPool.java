@@ -41,7 +41,6 @@ public class DefaultSocketConnectionPool implements SocketConnectionPool {
         this.serverGroup = serverGroup;
         if (config == null) {
             config = new GenericObjectPoolConfig();
-            config.setMaxTotal(1);
             config.setMaxIdle(1);
             config.setMinIdle(1);
             // 从池中取连接的最大等待时间，单位ms.
@@ -151,7 +150,7 @@ public class DefaultSocketConnectionPool implements SocketConnectionPool {
                 ServerAddress server = null;
                 try{
                     int currentIndex = autoIndex.incrementAndGet();
-                    currentIndex = serverGroup.getServers().size()%currentIndex;
+                    currentIndex = currentIndex%serverGroup.getServers().size();
                     server = serverGroup.getServers().get(currentIndex);
                     Socket socket = new Socket(server.getIp(), server.getPort());
                     
@@ -161,8 +160,7 @@ public class DefaultSocketConnectionPool implements SocketConnectionPool {
                     return po;
                 }
                 catch(Throwable t){
-                  logger.error("tcpPool makeObject[" + server!=null?server.getIp():"" + ":" + server!=null?server.getPort():"" + "] failed! "
-                  + t.getMessage(),t);
+                    logger.error("tcpPool makeObject[" + (server!=null?server.getIp():"") + ":" + (server!=null?server.getPort():"") + "] failed! "+ t.getMessage(),t);
                 }
             }
             

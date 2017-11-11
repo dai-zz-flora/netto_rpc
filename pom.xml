@@ -133,4 +133,17 @@
 			</plugin>
 		</plugins>
 	</build>
+	<distributionManagement>
+		<!-- 正式发布地址 -->
+		<repository>
+			<id>releases</id>
+			<name>Releases</name>
+			<url>http://mvn.sprucetec.com/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<name>project snapshots repository</name>
+			<url>http://mvn.sprucetec.com/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>	
 </project>

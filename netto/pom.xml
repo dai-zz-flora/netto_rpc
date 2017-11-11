@@ -9,7 +9,7 @@
 	<artifactId>netto</artifactId>
 	<description>The all in one project of netto</description>
 	<properties>
-		<skip_maven_deploy>false</skip_maven_deploy>
+		<skip_maven_deploy>true</skip_maven_deploy>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -89,4 +89,5 @@
 			</plugin>
 		</plugins>
 	</build>
+	
 </project>

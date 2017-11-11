@@ -34,10 +34,10 @@ public class TcpSocketTransport implements Transport{
     public NettoFrame request(NettoFrame requestFrame) {
         SocketConnection connection = null;
         boolean invalidatedSocket = false;
-        connection = this.pool.getConnection();
+
         
         try {
-
+            connection = this.pool.getConnection();
             connection.getSocket().setSoTimeout(timeout);
             OutputStream os = connection.getSocket().getOutputStream();
            
@@ -107,7 +107,7 @@ public class TcpSocketTransport implements Transport{
             
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
-            if (e instanceof SocketException || e instanceof SocketTimeoutException) {
+            if (connection !=null &&(e instanceof SocketException || e instanceof SocketTimeoutException)) {
                 try {
                     connection.close();
                 } catch (IOException ioe) {
@@ -118,7 +118,7 @@ public class TcpSocketTransport implements Transport{
             }
             throw new RemoteAccessException("error when get response ",e);
         } finally {
-            if(!invalidatedSocket)
+            if(!invalidatedSocket&&connection!=null)
                 try {
                     connection.close();
                 } catch (IOException ioe) {
