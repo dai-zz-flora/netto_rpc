@@ -94,7 +94,15 @@ public class ArgsDeserializer extends StdDeserializer<Object[]> {
 			        state = PROCESSING_ARGS;
 			        continue;
 			    }
-				
+			case START_OBJECT:
+			    if(state == READY){
+    			    if(length==1){
+    			        args[currentIndex] = ctxt.readValue(jp, mapper.getTypeFactory().constructType(types[currentIndex])); 
+    			    }
+    			    else{
+    			        throw new IOException("there are more than one arg");
+    			    }
+			    }
 			default:
 			    if(state == PROCESSING_ARGS){
     				if (currentIndex < length) {

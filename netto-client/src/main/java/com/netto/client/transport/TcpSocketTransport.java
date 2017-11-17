@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 
 import com.netto.client.pool.SocketConnection;
 import com.netto.client.pool.SocketConnectionPool;
+import com.netto.core.exception.BadFrameException;
 import com.netto.core.exception.RemoteAccessException;
 import com.netto.core.message.NettoFrame;
 
@@ -58,7 +59,7 @@ public class TcpSocketTransport implements Transport{
             String responseHeader = new String(headerBytes,"utf-8");
             
             if(!responseHeader.startsWith(NettoFrame.NETTO_HEADER_START)){
-                throw new RemoteAccessException("error header start:"+responseHeader);
+                throw new BadFrameException("error header start:"+responseHeader);
             }               
             else{
                 String[] headerSections = responseHeader.substring(NettoFrame.NETTO_HEADER_START.length()).split("/");
@@ -74,29 +75,26 @@ public class TcpSocketTransport implements Transport{
                     
                     responseFrame.setHeaderContent(headerContent);
                     responseFrame.setHeaderContentSize(headerContentSize);                   
-                           
+                    byte[] body = new byte[bodySize];
+                    int len = 0;
+                    while(len<bodySize){
+                        int readLen = is.read(body, len, bodySize-len);
+                        if(readLen<0){
+                            break;
+                        }
+                        else{
+                            len = len + readLen;
+                        }
+                    }
+
+                    responseFrame.setBody(body);
+                    responseFrame.setBodySize(body.length);
                     
                     Map<String,String> headers = responseFrame.decodeHeader();
                     if(flag.equals(NettoFrame.NETTO_FAILED)){
                         String errorMessage = headers.get(NettoFrame.ERROR_HEADER);
                         throw new RemoteAccessException(errorMessage);
-                    }
-                    else{
-                        byte[] body = new byte[bodySize];
-                        int len = 0;
-                        while(len<bodySize){
-                            int readLen = is.read(body, len, bodySize-len);
-                            if(readLen<0){
-                                break;
-                            }
-                            else{
-                                len = len + readLen;
-                            }
-                        }
-
-                        responseFrame.setBody(body);
-                        responseFrame.setBodySize(body.length);
-                    }
+                    }                    
                     
                 } else {
                     throw new RemoteAccessException("error header start:"+responseHeader);
@@ -107,7 +105,7 @@ public class TcpSocketTransport implements Transport{
             
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
-            if (connection !=null &&(e instanceof SocketException || e instanceof SocketTimeoutException)) {
+            if (connection !=null &&(e instanceof SocketException || e instanceof SocketTimeoutException || e instanceof BadFrameException)) {
                 try {
                     connection.close();
                 } catch (IOException ioe) {
